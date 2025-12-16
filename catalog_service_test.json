@@ -1,0 +1,227 @@
+{
+  "name": "boutique_alimentaire",
+  "Type_Service": "Catalog",
+  "title": "Boutique Alimentaire",
+  "description": "Commandez vos produits alimentaires en ligne",
+  "icon": "shopping_cart",
+  "currency": "XAF",
+  "delivery_fee": 1000,
+  "min_order": 5000,
+  "categories": [
+    {
+      "id": "fruits",
+      "name": "Fruits & Légumes",
+      "icon": "apple",
+      "color": "#4CAF50"
+    },
+    {
+      "id": "epicerie",
+      "name": "Épicerie",
+      "icon": "shopping_basket",
+      "color": "#FF9800"
+    },
+    {
+      "id": "boissons",
+      "name": "Boissons",
+      "icon": "local_drink",
+      "color": "#2196F3"
+    },
+    {
+      "id": "viandes",
+      "name": "Viandes & Poissons",
+      "icon": "food_bank",
+      "color": "#F44336"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod_001",
+      "name": "Tomates fraîches",
+      "description": "Tomates rouges bien mûres",
+      "category": "fruits",
+      "price": 500,
+      "unit": "kg",
+      "image": "https://via.placeholder.com/150/FF6347/FFFFFF?text=Tomates",
+      "stock": 50,
+      "discount": 0,
+      "featured": true
+    },
+    {
+      "id": "prod_002",
+      "name": "Pommes de terre",
+      "description": "Pommes de terre fraîches locales",
+      "category": "fruits",
+      "price": 800,
+      "unit": "kg",
+      "image": "https://via.placeholder.com/150/8B4513/FFFFFF?text=Pommes",
+      "stock": 100,
+      "discount": 10,
+      "featured": false
+    },
+    {
+      "id": "prod_003",
+      "name": "Riz parfumé",
+      "description": "Riz basmati premium - Sac de 5kg",
+      "category": "epicerie",
+      "price": 5000,
+      "unit": "sac",
+      "image": "https://via.placeholder.com/150/F5DEB3/000000?text=Riz",
+      "stock": 30,
+      "discount": 0,
+      "featured": true
+    },
+    {
+      "id": "prod_004",
+      "name": "Huile végétale",
+      "description": "Huile de tournesol 1L",
+      "category": "epicerie",
+      "price": 2000,
+      "unit": "bouteille",
+      "image": "https://via.placeholder.com/150/FFD700/000000?text=Huile",
+      "stock": 20,
+      "discount": 0,
+      "featured": false
+    },
+    {
+      "id": "prod_005",
+      "name": "Eau minérale",
+      "description": "Pack de 6 bouteilles d'eau minérale 1.5L",
+      "category": "boissons",
+      "price": 3000,
+      "unit": "pack",
+      "image": "https://via.placeholder.com/150/87CEEB/000000?text=Eau",
+      "stock": 40,
+      "discount": 5,
+      "featured": false
+    },
+    {
+      "id": "prod_006",
+      "name": "Jus d'orange",
+      "description": "Jus 100% naturel pressé à froid - 1L",
+      "category": "boissons",
+      "price": 1500,
+      "unit": "bouteille",
+      "image": "https://via.placeholder.com/150/FFA500/FFFFFF?text=Jus",
+      "stock": 25,
+      "discount": 0,
+      "featured": true
+    },
+    {
+      "id": "prod_007",
+      "name": "Poulet frais",
+      "description": "Poulet fermier entier vidé",
+      "category": "viandes",
+      "price": 3500,
+      "unit": "kg",
+      "image": "https://via.placeholder.com/150/FFC0CB/000000?text=Poulet",
+      "stock": 15,
+      "discount": 0,
+      "featured": true
+    },
+    {
+      "id": "prod_008",
+      "name": "Poisson tilapia",
+      "description": "Tilapia frais pêché du jour",
+      "category": "viandes",
+      "price": 2500,
+      "unit": "kg",
+      "image": "https://via.placeholder.com/150/4682B4/FFFFFF?text=Poisson",
+      "stock": 20,
+      "discount": 15,
+      "featured": false
+    },
+    {
+      "id": "prod_009",
+      "name": "Bananes plantain",
+      "description": "Régime de bananes plantain mûres",
+      "category": "fruits",
+      "price": 1000,
+      "unit": "régime",
+      "image": "https://via.placeholder.com/150/FFE135/000000?text=Bananes",
+      "stock": 35,
+      "discount": 0,
+      "featured": false
+    },
+    {
+      "id": "prod_010",
+      "name": "Farine de manioc",
+      "description": "Farine de manioc traditionnelle - 1kg",
+      "category": "epicerie",
+      "price": 1200,
+      "unit": "kg",
+      "image": "https://via.placeholder.com/150/F5F5DC/000000?text=Farine",
+      "stock": 50,
+      "discount": 0,
+      "featured": false
+    },
+    {
+      "id": "prod_011",
+      "name": "Coca-Cola",
+      "description": "Pack de 12 canettes Coca-Cola 33cl",
+      "category": "boissons",
+      "price": 4500,
+      "unit": "pack",
+      "image": "https://via.placeholder.com/150/DC143C/FFFFFF?text=Coca",
+      "stock": 30,
+      "discount": 10,
+      "featured": true
+    },
+    {
+      "id": "prod_012",
+      "name": "Oignons",
+      "description": "Oignons rouges frais",
+      "category": "fruits",
+      "price": 600,
+      "unit": "kg",
+      "image": "https://via.placeholder.com/150/8B008B/FFFFFF?text=Oignons",
+      "stock": 40,
+      "discount": 0,
+      "featured": false
+    }
+  ],
+  "payment_methods": [
+    {
+      "id": "mobile_money",
+      "name": "Mobile Money",
+      "icon": "phone_android",
+      "enabled": true
+    },
+    {
+      "id": "card",
+      "name": "Carte bancaire",
+      "icon": "credit_card",
+      "enabled": true
+    },
+    {
+      "id": "cash",
+      "name": "Paiement à la livraison",
+      "icon": "money",
+      "enabled": true
+    }
+  ],
+  "delivery_options": [
+    {
+      "id": "standard",
+      "name": "Livraison standard",
+      "description": "Livraison sous 24-48h",
+      "fee": 1000,
+      "estimated_time": "24-48h"
+    },
+    {
+      "id": "express",
+      "name": "Livraison express",
+      "description": "Livraison sous 2-4h",
+      "fee": 2500,
+      "estimated_time": "2-4h"
+    },
+    {
+      "id": "pickup",
+      "name": "Retrait en magasin",
+      "description": "Retrait gratuit en point de vente",
+      "fee": 0,
+      "estimated_time": "Immédiat"
+    }
+  ],
+  "api_checkout": "https://api.live.wortis.cg/api/catalog/checkout",
+  "api_verify_stock": "https://api.live.wortis.cg/api/catalog/verify-stock"
+}

@@ -1,0 +1,12 @@
+#!/bin/sh
+# Script exécuté automatiquement par Xcode Cloud après le clone
+
+# Vérifier Flutter
+flutter --version
+
+# Récupérer les dépendances Dart
+flutter pub get
+
+# Aller dans iOS et installer les pods
+cd ios
+pod install

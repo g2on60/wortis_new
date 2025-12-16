@@ -1,0 +1,702 @@
+// ignore_for_file: use_build_context_synchronously
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+
+import 'package:wortis/class/dataprovider.dart';
+import 'package:wortis/class/permission_manager.dart';
+import 'package:wortis/pages/connexion/gestionCompte.dart';
+import 'package:wortis/class/theme_provider.dart';
+import 'package:wortis/class/class.dart';
+import 'package:wortis/pages/homepage.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>(); 
+
+// ========== SERVICE GLOBAL DE GÉOLOCALISATION ==========
+class GlobalLocationService {
+  static final GlobalLocationService _instance = GlobalLocationService._internal();
+  factory GlobalLocationService() => _instance;
+  GlobalLocationService._internal();
+
+  // État global de la géolocalisation
+  LocationResult? _globalLocationResult;
+  bool _isInitialized = false;
+  bool _isDetecting = false;
+  DateTime? _detectionTime;
+  
+  // Getters publics
+  LocationResult? get currentLocation => _globalLocationResult;
+  bool get isInitialized => _isInitialized;
+  bool get isDetecting => _isDetecting;
+  
+  /// Initialiser la géolocalisation au démarrage de l'application
+  Future<void> initializeLocationAtStartup() async {
+    if (_isInitialized || _isDetecting) {
+      //print('🌍 [GlobalLocationService] Déjà initialisé ou en cours de détection');
+      return;
+    }
+    
+    _isDetecting = true;
+    //print('🚀 [GlobalLocationService] === DÉBUT INITIALISATION GÉOLOCALISATION ===');
+    
+    try {
+      // Effectuer la détection complète
+      final result = await _performCompleteLocationDetection();
+      
+      // Stocker le résultat globalement
+      _globalLocationResult = result;
+      _isInitialized = true;
+      _detectionTime = DateTime.now();
+      
+      //print('✅ [GlobalLocationService] === INITIALISATION TERMINÉE ===');
+      //print('📍 Pays détecté: ${result.country.name} (${result.country.code})');
+      //print('🔄 Statut: ${result.status}');
+      //print('📝 Méthode: ${result.detectionMethod ?? "Non spécifiée"}');
+      
+    } catch (e) {
+      //print('❌ [GlobalLocationService] Erreur lors de l\'initialisation: $e');
+      
+      // Fallback en cas d'erreur critique
+      _globalLocationResult = LocationResult.error(
+        country: _getDefaultCountry(),
+        error: 'Erreur lors de l\'initialisation: $e',
+      );
+      _isInitialized = true;
+      
+    } finally {
+      _isDetecting = false;
+    }
+  }
+  
+  /// Effectuer la détection complète de géolocalisation
+  Future<LocationResult> _performCompleteLocationDetection() async {
+    try {
+      //print('🔍 [GlobalLocationService] Début détection complète...');
+      
+      // 1. Vérifier et demander les permissions
+      bool hasPermission = await _checkAndRequestLocationPermissions();
+      if (!hasPermission) {
+        //print('❌ [GlobalLocationService] Permissions de localisation refusées');
+        return LocationResult.fallback(
+          country: _getDefaultCountry(),
+          reason: 'Permissions de localisation refusées',
+        );
+      }
+      //print('✅ [GlobalLocationService] Permissions accordées');
+
+      // 2. Vérifier si les services de localisation sont activés
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        //print('❌ [GlobalLocationService] Services de localisation désactivés');
+        return LocationResult.fallback(
+          country: _getDefaultCountry(),
+          reason: 'Services de localisation désactivés',
+        );
+      }
+      //print('✅ [GlobalLocationService] Services de localisation activés');
+
+      // 3. Obtenir la position GPS
+      Position? position = await _getCurrentGPSPosition();
+      
+      if (position != null) {
+        //print('📍 [GlobalLocationService] Position GPS obtenue: ${position.latitude}, ${position.longitude}');
+        //print('⏰ Timestamp: ${position.timestamp}');
+        //print('🎯 Précision: ${position.accuracy}m');
+        
+        // 4. Détection géographique hors ligne (prioritaire)
+        Country? detectedCountry = _detectCountryOffline(position.latitude, position.longitude);
+        
+        if (detectedCountry != null) {
+          //print('🎯 [GlobalLocationService] Pays détecté via géographie hors ligne: ${detectedCountry.name}');
+          return LocationResult.success(
+            country: detectedCountry,
+            position: position,
+            detectionMethod: 'GPS + Géographie mondiale hors ligne',
+          );
+        }
+        
+        // 5. Fallback: Géocodage en ligne
+        //print('🌐 [GlobalLocationService] Fallback vers géocodage en ligne...');
+        String? countryCode = await _getCountryCodeViaGeocoding(position);
+        if (countryCode != null) {
+          Country? onlineCountry = _findCountryByCode(countryCode);
+          if (onlineCountry != null) {
+            //print('✅ [GlobalLocationService] Pays détecté via géocodage en ligne: ${onlineCountry.name}');
+            return LocationResult.success(
+              country: onlineCountry,
+              position: position,
+              detectionMethod: 'GPS + Géocodage en ligne',
+            );
+          }
+        }
+        
+        // 6. Si position GPS mais aucun pays détecté
+        //print('⚠️ [GlobalLocationService] Position GPS obtenue mais pays non identifié');
+        return LocationResult.fallback(
+          country: _getDefaultCountry(),
+          reason: 'Position GPS obtenue mais pays non identifié',
+        );
+      }
+
+      // 7. Aucune position GPS obtenue
+      //print('❌ [GlobalLocationService] Impossible d\'obtenir la position GPS');
+      return LocationResult.fallback(
+        country: _getDefaultCountry(),
+        reason: 'Impossible d\'obtenir la position GPS',
+      );
+
+    } catch (e) {
+      //print('❌ [GlobalLocationService] Erreur lors de la détection: $e');
+      return LocationResult.error(
+        country: _getDefaultCountry(),
+        error: _getErrorMessage(e),
+      );
+    }
+  }
+  
+  /// Vérifier et demander les permissions de localisation
+  Future<bool> _checkAndRequestLocationPermissions() async {
+    try {
+      //print('🔐 [GlobalLocationService] Vérification des permissions...');
+      
+      LocationPermission permission = await Geolocator.checkPermission();
+      //print('📋 Permission actuelle: $permission');
+      
+      if (permission == LocationPermission.denied) {
+        //print('🔔 Demande de permission en cours...');
+        permission = await Geolocator.requestPermission();
+        //print('📋 Nouvelle permission: $permission');
+      }
+      
+      if (permission == LocationPermission.deniedForever) {
+        //print('❌ Permission refusée définitivement');
+        return false;
+      }
+      
+      bool isGranted = permission == LocationPermission.whileInUse || 
+                      permission == LocationPermission.always;
+      
+      //print('✅ Permissions accordées: $isGranted');
+      return isGranted;
+             
+    } catch (e) {
+      //print('❌ [GlobalLocationService] Erreur lors de la vérification des permissions: $e');
+      return false;
+    }
+  }
+  
+  /// Obtenir la position GPS actuelle
+  Future<Position?> _getCurrentGPSPosition() async {
+    try {
+      //print('🛰️ [GlobalLocationService] Acquisition position GPS...');
+      
+      // Essayer d'abord la dernière position connue
+      Position? lastPosition = await Geolocator.getLastKnownPosition(
+        forceAndroidLocationManager: false,
+      );
+      
+      if (lastPosition != null) {
+        final age = DateTime.now().difference(lastPosition.timestamp!);
+        //print('📍 Dernière position trouvée (${age.inMinutes} minutes)');
+        
+        if (age.inMinutes <= 15) { // Position récente acceptable
+          //print('✅ Utilisation de la dernière position connue');
+          return lastPosition;
+        } else {
+          //print('⏰ Dernière position trop ancienne, acquisition nouvelle position...');
+        }
+      } else {
+        //print('📍 Aucune dernière position disponible');
+      }
+      
+      // Obtenir une nouvelle position GPS
+      //print('🎯 Acquisition nouvelle position GPS...');
+      Position currentPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 20),
+        forceAndroidLocationManager: false,
+      ).timeout(const Duration(seconds: 25));
+      
+      //print('✅ Nouvelle position GPS acquise');
+      return currentPosition;
+      
+    } catch (e) {
+      //print('❌ [GlobalLocationService] Erreur acquisition GPS: $e');
+      return null;
+    }
+  }
+  
+  /// Détection géographique hors ligne
+  Country? _detectCountryOffline(double latitude, double longitude) {
+    try {
+      //print('🗺️ [GlobalLocationService] Détection géographique hors ligne...');
+      
+      // Utiliser votre système de détection géographique hors ligne existant
+      return GlobalOfflineGeocoding.detectCountryFromCoordinates(latitude, longitude);
+      
+    } catch (e) {
+      //print('❌ [GlobalLocationService] Erreur détection hors ligne: $e');
+      return null;
+    }
+  }
+  
+  /// Géocodage en ligne pour obtenir le code pays
+  Future<String?> _getCountryCodeViaGeocoding(Position position) async {
+    try {
+      //print('🌐 [GlobalLocationService] Géocodage en ligne...');
+      
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      ).timeout(const Duration(seconds: 10));
+
+      if (placemarks.isNotEmpty) {
+        final placemark = placemarks.first;
+        //print('🏷️ Géocodage: ${placemark.country} (${placemark.isoCountryCode})');
+        return placemark.isoCountryCode;
+      }
+      
+      //print('❌ Aucun résultat de géocodage');
+      return null;
+      
+    } catch (e) {
+      //print('❌ [GlobalLocationService] Erreur géocodage: $e');
+      return null;
+    }
+  }
+  
+  /// Trouver un pays par son code ISO
+  Country? _findCountryByCode(String? countryCode) {
+    if (countryCode == null || countryCode.isEmpty) return null;
+    
+    try {
+      return countries.firstWhere(
+        (country) => country.code.toLowerCase() == countryCode.toLowerCase(),
+        orElse: () => _getDefaultCountry(),
+      );
+    } catch (e) {
+      //print('❌ [GlobalLocationService] Pays non trouvé pour le code: $countryCode');
+      return _getDefaultCountry();
+    }
+  }
+  
+  /// Obtenir le pays par défaut
+  Country _getDefaultCountry() {
+    if (countries.isNotEmpty) {
+      return countries.first; // Congo par défaut
+    }
+    return const Country(
+      name: 'Congo', 
+      code: 'CG', 
+      dialCode: '+242', 
+      flag: '🇨🇬'
+    );
+  }
+  
+  /// Générer un message d'erreur user-friendly
+  String _getErrorMessage(dynamic error) {
+    final errorStr = error.toString().toLowerCase();
+    
+    if (errorStr.contains('permission')) {
+      return 'Permission de localisation requise';
+    } else if (errorStr.contains('service')) {
+      return 'Services de localisation désactivés';
+    } else if (errorStr.contains('timeout')) {
+      return 'Délai de détection dépassé';
+    } else if (errorStr.contains('network') || errorStr.contains('io_error')) {
+      return 'Erreur de réseau';
+    } else {
+      return 'Erreur de géolocalisation';
+    }
+  }
+  
+  /// Forcer une nouvelle détection (pour refresh manuel)
+  Future<LocationResult> refreshLocation() async {
+    //print('🔄 [GlobalLocationService] Refresh de la géolocalisation demandé');
+    
+    if (_isDetecting) {
+      //print('⏳ Détection déjà en cours, attente...');
+      
+      // Attendre que la détection en cours se termine
+      int attempts = 0;
+      while (_isDetecting && attempts < 20) { // Max 10 secondes
+        await Future.delayed(const Duration(milliseconds: 500));
+        attempts++;
+      }
+      
+      return _globalLocationResult ?? LocationResult.fallback(
+        country: _getDefaultCountry(),
+        reason: 'Timeout lors de l\'attente',
+      );
+    }
+    
+    // Effectuer une nouvelle détection
+    _isDetecting = true;
+    
+    try {
+      final result = await _performCompleteLocationDetection();
+      _globalLocationResult = result;
+      _detectionTime = DateTime.now();
+      return result;
+    } finally {
+      _isDetecting = false;
+    }
+  }
+  
+  /// Vider le cache (pour forcer une nouvelle détection)
+  void clearCache() {
+    //print('🗑️ [GlobalLocationService] Cache vidé');
+    _globalLocationResult = null;
+    _detectionTime = null;
+    _isInitialized = false;
+  }
+}
+
+// ========== FONCTION MAIN ==========
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //print('🚀 [MAIN] === DÉMARRAGE APPLICATION ===');
+  
+  // 2. Demander les autres permissions (ATT, notifications, etc.)
+  //print('🔐 [MAIN] Demande des autres permissions...');
+  await PermissionManager.requestModernPermissions(null);
+
+  final navigatorKey = GlobalKey<NavigatorState>();
+
+  //print('📱 [MAIN] Lancement de l\'interface utilisateur...');
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AppDataProvider(navigatorKey: navigatorKey),
+        ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ],
+      child: MyApp(navigatorKey: navigatorKey),
+    ),
+  );
+}
+
+class MyApp extends StatelessWidget {
+  final GlobalKey<NavigatorState> navigatorKey;
+  
+  const MyApp({required this.navigatorKey, super.key});
+
+  @override 
+  Widget build(BuildContext context) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
+        return MaterialApp(
+          navigatorKey: navigatorKey,
+          routes: {
+            '/home': (context) => HomePage(routeObserver: routeObserver),
+          },
+          title: 'Wortis',
+          debugShowCheckedModeBanner: false,
+          navigatorObservers: [routeObserver],
+          theme: themeProvider.getLightTheme(),
+          darkTheme: themeProvider.getDarkTheme(),
+          themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          home: const IntroPage(),
+        );
+      },
+    );
+  }
+}
+
+class IntroPage extends StatefulWidget {
+  const IntroPage({super.key});
+
+  @override
+  State<IntroPage> createState() => _IntroPageState();
+}
+
+class _IntroPageState extends State<IntroPage> with SingleTickerProviderStateMixin {
+  bool _isLoading = true;
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    );
+    
+    _initializeAnimation();
+    _initialize();
+  }
+
+  Future<void> _requestTrackingPermission() async {
+    // Vérifiez d'abord si vous utilisez iOS
+    if (Platform.isIOS) {
+      // Vérifiez le statut actuel
+      final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+      
+      // Si le statut est indéterminé, demandez l'autorisation
+      if (status == TrackingStatus.notDetermined) {
+        // Attendez que l'app soit complètement initialisée sur iOS
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Demandez l'autorisation
+        final result = await AppTrackingTransparency.requestTrackingAuthorization();
+        //print('Tracking permission status: $result');
+      }
+    }
+  }
+
+  Future<void> _initialize() async {
+    try {
+      //print('🔄 [IntroPage] Début initialisation...');
+      
+      // 1. Démarrer la géolocalisation en arrière-plan en même temps que le chargement
+      final locationFuture = GlobalLocationService().initializeLocationAtStartup();
+      
+      // 2. Demander l'autorisation ATT en premier sur iOS
+      await _requestTrackingPermission();
+      
+      final appDataProvider = Provider.of<AppDataProvider>(context, listen: false);
+      
+      // 3. Obtenir le token de manière sécurisée
+      String? token;
+      try {
+        token = await SessionManager.getToken();
+      } catch (e) {
+        //print('Erreur lors de la récupération du token: $e');
+        token = null;
+      }
+      
+      // 4. Attendre que la géolocalisation se termine
+      await locationFuture;
+      //print('✅ [IntroPage] Géolocalisation terminée pendant le chargement');
+      
+      if (token == null || token.isEmpty) {
+        // Si pas de token, charger uniquement les données publiques et naviguer vers auth
+        try {
+          await appDataProvider.loadPublicDataWithPriority();
+        } catch (e) {
+          //print('Erreur lors du chargement des données publiques: $e');
+        }
+        
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _navigateToAuth();
+        }
+        return;
+      }
+      
+      // Pour les utilisateurs connectés
+      const timeout = Duration(seconds: 8);
+      bool isTokenValid = false;
+      bool timeoutOccurred = false;
+      
+      try {
+        // Vérifier la validité du token avec timeout
+        isTokenValid = await _verifyTokenValidity(token).timeout(
+          timeout,
+          onTimeout: () {
+            timeoutOccurred = true;
+            return false;
+          },
+        );
+        
+        // Charger les données publiques en parallèle
+        final dataLoadingFuture = appDataProvider.loadPublicDataWithPriority();
+        
+        if (!isTokenValid || timeoutOccurred) {
+          // Token invalide ou timeout
+          await dataLoadingFuture;
+          if (mounted) {
+            setState(() => _isLoading = false);
+            _navigateToAuth();
+          }
+          return;
+        }
+        
+        // Si le token est valide, attendre le chargement des données publiques
+        await dataLoadingFuture;
+        
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _navigateToHome();
+          
+          // Charger les détails utilisateur en arrière-plan après navigation
+          Future.microtask(() => appDataProvider.loadUserProfileInBackground(token!));
+        }
+        
+      } catch (e) {
+        //print('Erreur lors de la vérification du token: $e');
+        // En cas d'erreur, charger quand même les données publiques et rediriger
+        try {
+          await appDataProvider.loadPublicDataWithPriority();
+        } catch (loadError) {
+          //print('Erreur lors du chargement des données publiques: $loadError');
+        }
+        
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _navigateToAuth();
+        }
+      }
+      
+    } catch (e) {
+      //print('Erreur générale dans _initialize: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _navigateToAuth();
+      }
+    }
+  }
+
+  Future<bool> _verifyTokenValidity(String token) async {
+    try {
+      final storedToken = await SessionManager.getToken();
+      
+      if (storedToken != null) {
+        return token == storedToken;
+      }
+      
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  void _navigateToHome() {
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, '/home');
+  }
+
+  void _navigateToAuth() {
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const AuthentificationPage()),
+    );
+  }
+
+  void _initializeAnimation() {
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.0, end: 1.2)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 60.0,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.2, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 40.0,
+      ),
+    ]).animate(_animationController);
+
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+      ),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF006699),
+      body: Stack(
+        children: [
+          _buildBackground(),
+          _buildLogo(),
+          if (_isLoading) _buildLoadingIndicator(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackground() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF006699),
+            const Color(0xFF006699).withOpacity(0.8),
+            const Color(0xFF006699).withOpacity(0.6),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogo() {
+    return Center(
+      child: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Opacity(
+              opacity: _opacityAnimation.value,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                child: Image.asset(
+                  'assets/wortisapp.png',
+                  height: 200,
+                  width: 200,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return const Positioned(
+      bottom: 50,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                strokeWidth: 2,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Chargement...',
+              style: TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
