@@ -352,10 +352,10 @@ class ApiService {
         String errorMsg = _extractErrorMessage(data);
 
         // Utiliser les messages personnalisés si disponibles
-        if (response.statusCode >= 400 && response.statusCode < 500) {
-          errorMsg = serviceData?['error_400'] ?? errorMsg;
+       if (response.statusCode >= 400 && response.statusCode < 500) {
+          errorMsg = errorMsg ?? serviceData?['error_400'] ;
         } else if (response.statusCode >= 500) {
-          errorMsg = serviceData?['error_500'] ?? errorMsg;
+          errorMsg = errorMsg ?? serviceData?['error_500'] ;
         }
 
         CustomOverlay.showError(context, message: errorMsg);
