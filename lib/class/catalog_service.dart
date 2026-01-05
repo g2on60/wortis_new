@@ -1796,7 +1796,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         'delivery_fee': selectedDelivery!.fee,
         'notes': _notesController.text,
       };
-
+      print('\n📤 [CATALOG] Envoi de la commande...');
       print('\n📤 [CATALOG] Envoi de la commande...');
       print('   - URL: ${widget.catalogData['api_checkout']}');
       print('   - Nombre de produits: ${commande.length}');
