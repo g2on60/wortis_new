@@ -1723,7 +1723,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
   double get total => subtotal + (selectedDelivery?.fee ?? 0);
 
   Future<void> _submitOrder() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      print('⚠️  [CATALOG] Validation formulaire échouée');
+      return;
+    }
+
+    print('\n${'=' * 60}');
+    print('🚀 [CATALOG] DÉBUT SOUMISSION COMMANDE');
+    print('=' * 60);
 
     // Afficher loading
     showDialog(
@@ -1733,53 +1740,138 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
 
     try {
-      // Préparer les données de commande
+      // Récupérer le token et les infos utilisateur
+      print('🔑 [CATALOG] Récupération du token...');
+      final String? token = await SessionManager.getToken();
+      if (token == null) {
+        print('❌ [CATALOG] Token non disponible');
+        throw Exception('Token non disponible');
+      }
+      print('✅ [CATALOG] Token récupéré: ${token.substring(0, 10)}...');
+
+      // Récupérer les données utilisateur
+      print('👤 [CATALOG] Récupération des infos utilisateur...');
+      final userData = await UserService.getUserInfo(token);
+      final String phoneNumber =
+          userData.enregistrement['mobile']?.toString() ??
+          _phoneController.text;
+      final String userName =
+          userData.enregistrement['username']?.toString() ??
+          userData.enregistrement['nom']?.toString() ??
+          '';
+
+      print('   - Mobile: $phoneNumber');
+      print('   - Nom: $userName');
+
+      // Préparer les données de commande (format générique)
+      print('📦 [CATALOG] Préparation de la commande...');
+      final Map<String, dynamic> commande = {};
+
+      // Construire l'objet commande avec product_id comme clé
+      widget.cart.forEach((productId, cartItem) {
+        commande[productId] = {
+          'nom': cartItem.product.name,
+          'prix': cartItem.product.discountedPrice,
+          'quantite': cartItem.quantity,
+          'description': cartItem.product.description,
+        };
+        print(
+          '   - ${cartItem.product.name} x${cartItem.quantity} = ${cartItem.product.discountedPrice * cartItem.quantity} FCFA',
+        );
+      });
+
+      print(
+        '💰 [CATALOG] Montant total: $total FCFA (dont ${selectedDelivery!.fee} FCFA de livraison)',
+      );
+
       final orderData = {
-        'items': widget.cart.entries.map((entry) {
-          return {
-            'product_id': entry.key,
-            'quantity': entry.value.quantity,
-            'price': entry.value.product.discountedPrice,
-          };
-        }).toList(),
+        'montant': total,
+        'momo': phoneNumber,
+        'name': userName.isNotEmpty ? userName : _phoneController.text,
+        'mobile': _phoneController.text,
+        'adresse': _addressController.text,
+        'nom': userName.isNotEmpty ? userName : _phoneController.text,
+        'commande': commande,
         'delivery_option': selectedDelivery!.id,
-        'delivery_address': _addressController.text,
-        'phone': _phoneController.text,
-        'notes': _notesController.text,
-        'subtotal': subtotal,
         'delivery_fee': selectedDelivery!.fee,
-        'total': total,
+        'notes': _notesController.text,
       };
 
-      // Appel API (remplacer par votre vraie API)
+      print('\n📤 [CATALOG] Envoi de la commande...');
+      print('   - URL: ${widget.catalogData['api_checkout']}');
+      print('   - Nombre de produits: ${commande.length}');
+      print('   - Données: ${jsonEncode(orderData)}');
+
+      // Appel API
       final response = await http.post(
         Uri.parse(widget.catalogData['api_checkout'] as String),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${await SessionManager.getToken()}',
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode(orderData),
       );
 
       Navigator.pop(context); // Fermer loading
 
-      if (response.statusCode == 200) {
+      print('\n📥 [CATALOG] Réponse reçue:');
+      print('   - Status Code: ${response.statusCode}');
+      print('   - Headers: ${response.headers}');
+      print('   - Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
         // Succès
+        final responseData = jsonDecode(response.body);
+        final transId = responseData['transID'] ?? responseData['order_id'];
+
+        print('\n${'=' * 60}');
+        print('🎉 [CATALOG] COMMANDE RÉUSSIE');
+        print('=' * 60);
+        print('   - TransID: $transId');
+        print('   - Order ID: ${responseData['order_id']}');
+        print('   - Montant: ${responseData['montant_total']} FCFA');
+        print('${'=' * 60}\n');
+
         _showSuccessDialog();
       } else {
         // Erreur
+        print('\n❌ [CATALOG] Erreur HTTP ${response.statusCode}');
+
+        String errorMsg = 'Erreur lors de la commande';
+        try {
+          final errorData = jsonDecode(response.body);
+          errorMsg = errorData['error'] ?? errorData['msg'] ?? errorMsg;
+          print('   - Message: $errorMsg');
+          if (errorData['details'] != null) {
+            print('   - Détails: ${errorData['details']}');
+          }
+        } catch (e) {
+          print('   - Body brut: ${response.body}');
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur lors de la commande'),
+          SnackBar(
+            content: Text(errorMsg),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       Navigator.pop(context); // Fermer loading
-      print('Erreur commande: $e');
+
+      print('\n❌ [CATALOG] ERREUR EXCEPTION');
+      print('   - Type: ${e.runtimeType}');
+      print('   - Message: $e');
+      print('   - StackTrace:');
+      print(stackTrace.toString());
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Erreur: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
       );
     }
   }

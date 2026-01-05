@@ -13,6 +13,7 @@ import 'package:mime/mime.dart';
 import 'package:wortis/main.dart';
 import 'package:wortis/pages/homepage.dart';
 import 'package:wortis/class/uploaded_file.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FormStyles {
   static const primaryColor = Color(0xFF006699);
@@ -195,6 +196,7 @@ class _FormServiceState extends State<FormService> {
       'regex_error': field['regex_error'],
       'multiple': field['multiple'],
       'accept': field['accept'],
+      'tag': field['tag'], // Préserver le tag pour le pré-remplissage
     };
 
     if (field['options'] != null) {
@@ -250,9 +252,11 @@ class _FormServiceState extends State<FormService> {
     try {
       final responseData =
           await _apiService.fetchServiceFields(widget.serviceName);
+
+      serviceData = _normalizeApiData(responseData['service']);
+      await initializeFormValues(); // Appel asynchrone
+
       setState(() {
-        serviceData = _normalizeApiData(responseData['service']);
-        initializeFormValues();
         isLoading = false;
       });
     } catch (e) {
@@ -269,7 +273,21 @@ class _FormServiceState extends State<FormService> {
   // INITIALISATION ET VALIDATION
   // ============================================
 
-  void initializeFormValues() {
+  // Fonction helper pour récupérer les données utilisateur
+  Future<Map<String, dynamic>?> _getUserInfoFromStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userInfoString = prefs.getString('user_infos');
+      if (userInfoString != null) {
+        return jsonDecode(userInfoString);
+      }
+    } catch (e) {
+      print('⚠️  [FormService] Impossible de récupérer les données utilisateur: $e');
+    }
+    return null;
+  }
+
+  Future<void> initializeFormValues() async {
     if (serviceData == null) return;
 
     var fields = serviceData!['steps'] != null
@@ -278,9 +296,24 @@ class _FormServiceState extends State<FormService> {
 
     if (fields == null) return;
 
+    // Récupérer les données utilisateur pour le pré-remplissage
+    final userInfo = await _getUserInfoFromStorage();
+    if (userInfo != null) {
+      print('📝 [FormService] Données utilisateur chargées depuis SharedPreferences');
+      print('✅ [FormService] Champs disponibles: ${userInfo.keys.toList()}');
+    }
+
     for (var field in fields) {
       String fieldName = field['name'];
       String fieldType = field['type'];
+      String? fieldTag = field['tag'];
+
+      // Valeur par défaut depuis les données utilisateur si tag correspond
+      dynamic defaultValue;
+      if (fieldTag != null && userInfo != null && userInfo.containsKey(fieldTag)) {
+        defaultValue = userInfo[fieldTag];
+        print('🔄 [FormService] Pré-remplissage du champ "$fieldName" (tag: "$fieldTag") avec: $defaultValue');
+      }
 
       switch (fieldType) {
         case 'list':
@@ -290,10 +323,12 @@ class _FormServiceState extends State<FormService> {
           formValues[fieldName] = field['multiple'] == true ? [] : null;
           break;
         default:
-          formValues[fieldName] = null;
+          formValues[fieldName] = defaultValue;
           if (['text', 'number', 'date', 'time', 'datetime']
               .contains(fieldType)) {
-            controllers[fieldName] = TextEditingController();
+            controllers[fieldName] = TextEditingController(
+              text: defaultValue?.toString() ?? '',
+            );
           }
       }
     }
@@ -415,8 +450,8 @@ class _FormServiceState extends State<FormService> {
           currentStep = 0;
           formValues.clear();
           verificationData = null;
-          initializeFormValues();
         });
+        await initializeFormValues(); // Appel asynchrone en dehors du setState
       }
     } catch (e) {
       print('❌ Erreur soumission: $e');
@@ -507,6 +542,54 @@ class _FormServiceState extends State<FormService> {
   // VÉRIFICATION PREMIÈRE ÉTAPE
   // ============================================
 
+  // Pré-remplir les champs de l'étape 2 avec les données utilisateur
+  Future<void> _prefillStep2Fields() async {
+    if (currentStep != 1) return;
+
+    final userInfo = await _getUserInfoFromStorage();
+    if (userInfo == null) return;
+
+    print('📝 [FormService Step2] Pré-remplissage des champs de l\'étape 2...');
+
+    var step2Fields = serviceData!['steps'][1]['fields'];
+    if (step2Fields == null) return;
+
+    for (var field in step2Fields) {
+      String fieldName = field['name'];
+      String? fieldTag = field['tag'];
+
+      // Ne pré-remplir que si le champ n'a pas déjà une valeur
+      if (fieldTag != null &&
+          userInfo.containsKey(fieldTag) &&
+          (formValues[fieldName] == null ||
+              formValues[fieldName].toString().isEmpty)) {
+        dynamic defaultValue = userInfo[fieldTag];
+        print(
+          '🔄 [FormService Step2] Pré-remplissage "$fieldName" (tag: "$fieldTag") avec: $defaultValue',
+        );
+
+        setState(() {
+          formValues[fieldName] = defaultValue;
+
+          // Mettre à jour le controller si nécessaire
+          if (controllers.containsKey(fieldName)) {
+            controllers[fieldName]?.value = TextEditingValue(
+              text: defaultValue?.toString() ?? '',
+              selection: TextSelection.collapsed(
+                offset: defaultValue?.toString().length ?? 0,
+              ),
+            );
+          } else if (['text', 'number', 'date', 'time', 'datetime']
+              .contains(field['type'])) {
+            controllers[fieldName] = TextEditingController(
+              text: defaultValue?.toString() ?? '',
+            );
+          }
+        });
+      }
+    }
+  }
+
   Future<void> verifyFirstStep() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -590,6 +673,9 @@ class _FormServiceState extends State<FormService> {
 
           isLoading = false;
         });
+
+        // Pré-remplir les champs de l'étape 2 avec les données utilisateur (tag)
+        _prefillStep2Fields();
       } catch (e) {
         throw Exception('not_found');
       }

@@ -3,39 +3,138 @@ import requests
 from bson import ObjectId
 from datetime import datetime
 
-@app.route('/vival/checkout', methods=['POST'])
-def vival_checkout():
+
+def apk_calculate_order_total(commandes):
+    """
+    Calcule le montant total de la commande en se basant sur les prix dans cat_vival
+    """
+    total = 0
+    for product_id, valeur in commandes.items():
+        try:
+            id_commande = product_id.split("_")[0] if "_" in product_id else product_id
+            object_id = ObjectId(id_commande)
+
+            # Récupérer le prix depuis la base de données
+            product_in_db = euroshop_db.cat_vival.find_one({"_id": object_id})
+
+            if product_in_db:
+                quantite = valeur.get('quantite', 0)
+                prix_unitaire = product_in_db['prix']
+                total += prix_unitaire * quantite
+
+        except Exception as e:
+            print(f"[VIVAL] Erreur calcul total pour {product_id}: {str(e)}")
+            continue
+
+    return total
+
+
+def apk_enrich_order_with_catalog_data(commandes):
+    """
+    Enrichit les données de commande avec les informations complètes du catalogue cat_vival
+    """
+    enriched_commandes = {}
+
+    for product_id, valeur in commandes.items():
+        try:
+            id_commande = product_id.split("_")[0] if "_" in product_id else product_id
+            object_id = ObjectId(id_commande)
+
+            # Récupérer toutes les infos du produit depuis cat_vival
+            product_in_db = euroshop_db.cat_vival.find_one({"_id": object_id})
+
+            if product_in_db:
+                enriched_commandes[str(object_id)] = {
+                    'product_id': str(object_id),
+                    'nom': product_in_db['nom'],
+                    'prix_unitaire': product_in_db['prix'],
+                    'quantite': valeur.get('quantite', 1),
+                    'total': product_in_db['prix'] * valeur.get('quantite', 1),
+                    'description': product_in_db.get('description', ''),
+                    'fileLink': product_in_db.get('fileLink', ''),
+                    'l': product_in_db.get('l', ''),
+                    'vendu': product_in_db.get('vendu', 0)
+                }
+
+        except Exception as e:
+            print(f"[VIVAL] Erreur enrichissement pour {product_id}: {str(e)}")
+            continue
+
+    return enriched_commandes
+
+@app.route('/apk/vival/checkout', methods=['POST'])
+def apk_vival_checkout():
     """
     Route pour gérer le paiement et l'enregistrement de commande Vival
 
     Payload attendu:
     {
-        "montant": 5000,
+        "montant": 4200,
         "momo": "242066985554",
         "name": "John Doe",
         "mobile": "242066985554",
         "adresse": "Brazzaville, Congo",
         "nom": "John Doe",
         "commande": {
-            "67890abc_1": {"nom": "Eau Vival 1.5L", "prix": 500, "quantite": 2},
-            "67890def_2": {"nom": "Coca Cola", "prix": 600, "quantite": 3}
+            "65cf5106abf1d162d35664ae": {
+                "nom": "Pack de 8 x 1.5",
+                "prix": 2100,
+                "quantite": 2,
+                "description": "Le grand classique...",
+                "fileLink": "1_5l.png"
+            }
         }
     }
     """
+    print("\n" + "="*80)
+    print("🚀 [VIVAL CHECKOUT] Nouvelle demande de commande")
+    print("="*80)
+
     data = request.json
+
+    print(f"📦 [VIVAL] Données reçues:")
+    print(f"   - Montant: {data.get('montant')} FCFA")
+    print(f"   - Client: {data.get('nom')}")
+    print(f"   - Mobile: {data.get('mobile')}")
+    print(f"   - Adresse: {data.get('adresse')}")
+    print(f"   - Nombre de produits: {len(data.get('commande', {}))}")
 
     # Validation des champs obligatoires
     required_fields = ['montant', 'momo', 'name', 'mobile', 'adresse', 'nom', 'commande']
     missing_fields = [field for field in required_fields if field not in data]
 
     if missing_fields:
+        print(f"❌ [VIVAL] Validation échouée - Champs manquants: {', '.join(missing_fields)}")
         return jsonify({
             'error': f'Champs manquants: {", ".join(missing_fields)}'
         }), 400
 
+    print("✅ [VIVAL] Validation des champs obligatoires: OK")
+
     # Validation de la commande
-    if not validate_commandes_vival(data.get('commande', {})):
+    print(f"🔍 [VIVAL] Validation de la commande...")
+    if not apk_validate_commandes_vival(data.get('commande', {})):
+        print("❌ [VIVAL] Validation de la commande échouée")
         return jsonify({'msg': 'Données de commande invalides'}), 400
+
+    print("✅ [VIVAL] Validation de la commande: OK")
+
+    # Calculer et vérifier le montant total
+    print(f"💰 [VIVAL] Calcul du montant total...")
+    calculated_total = apk_calculate_order_total(data['commande'])
+    print(f"   - Montant envoyé: {data['montant']} FCFA")
+    print(f"   - Montant calculé: {calculated_total} FCFA")
+    print(f"   - Différence: {abs(calculated_total - data['montant'])} FCFA")
+
+    if abs(calculated_total - data['montant']) > 1:  # Tolérance de 1 FCFA pour les arrondis
+        print(f"❌ [VIVAL] Montant invalide - Différence trop grande")
+        return jsonify({
+            'error': 'Le montant ne correspond pas au total de la commande',
+            'montant_envoye': data['montant'],
+            'montant_calcule': calculated_total
+        }), 400
+
+    print("✅ [VIVAL] Validation du montant: OK")
 
     # Étape 1: Déclencher le paiement via WortisPay
     try:
@@ -73,27 +172,50 @@ def vival_checkout():
         if not trans_id:
             # Si l'API ne retourne pas de transID, en générer un
             trans_id = f"VIVAL_{datetime.now().strftime('%Y%m%d%H%M%S')}_{data['momo'][-4:]}"
-            print(f"[VIVAL] Aucun transID retourné, génération: {trans_id}")
+            print(f"⚠️  [VIVAL] Aucun transID retourné par WortisPay")
+            print(f"🔄 [VIVAL] TransID généré: {trans_id}")
+        else:
+            print(f"🆔 [VIVAL] TransID reçu: {trans_id}")
 
     except requests.exceptions.Timeout:
+        print(f"⏱️  [VIVAL] Timeout lors de l'appel à WortisPay (>30s)")
         return jsonify({
             'error': 'Délai d\'attente dépassé lors du paiement'
         }), 504
     except requests.exceptions.RequestException as e:
-        print(f"[VIVAL] Erreur paiement: {str(e)}")
+        print(f"❌ [VIVAL] Erreur réseau lors du paiement: {str(e)}")
+        print(f"   - Type: {type(e).__name__}")
         return jsonify({
             'error': 'Erreur lors de la communication avec le service de paiement',
             'details': str(e)
         }), 500
+    except Exception as e:
+        print(f"❌ [VIVAL] Erreur inattendue lors du paiement: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({
+            'error': 'Erreur inattendue lors du paiement',
+            'details': str(e)
+        }), 500
 
     # Étape 2: Enregistrer la commande dans MongoDB
+    print("\n" + "-"*80)
+    print("💾 [VIVAL] ÉTAPE 2: Enregistrement de la commande dans MongoDB")
+    print("-"*80)
+
     try:
+        # Enrichir la commande avec les données complètes du catalogue
+        print(f"🔄 [VIVAL] Enrichissement de la commande avec cat_vival...")
+        enriched_commande = apk_enrich_order_with_catalog_data(data['commande'])
+        print(f"   - Produits enrichis: {len(enriched_commande)}")
+
         order_data = {
             'transID': trans_id,
             'mobile': data['mobile'],
             'adresse': data['adresse'],
             'nom': data['nom'],
-            'commande': data['commande'],
+            'commande': enriched_commande,
+            'commande_originale': data['commande'],
             'montant': data['montant'],
             'payment_status': payment_result.get('status', 'pending'),
             'payment_response': payment_result,
@@ -101,20 +223,41 @@ def vival_checkout():
             'updated_at': datetime.utcnow()
         }
 
+        print(f"💾 [VIVAL] Insertion dans MongoDB...")
         result = euroshop_db.vival.insert_one(order_data)
+        print(f"✅ [VIVAL] Commande enregistrée avec ID: {result.inserted_id}")
 
-        print(f"[VIVAL] Commande enregistrée avec ID: {result.inserted_id}")
+        # Mettre à jour le nombre de ventes pour chaque produit
+        print(f"📊 [VIVAL] Mise à jour des compteurs de vente...")
+        apk_update_product_sales(enriched_commande)
+
+        nombre_articles = sum(item['quantite'] for item in enriched_commande.values())
+
+        print("\n" + "="*80)
+        print("🎉 [VIVAL] COMMANDE RÉUSSIE")
+        print("="*80)
+        print(f"   - TransID: {trans_id}")
+        print(f"   - Order ID: {result.inserted_id}")
+        print(f"   - Montant: {data['montant']} FCFA")
+        print(f"   - Articles: {nombre_articles}")
+        print(f"   - Client: {data['nom']}")
+        print("="*80 + "\n")
 
         return jsonify({
             'code': 200,
             'message': 'Paiement initié et commande enregistrée avec succès',
             'transID': trans_id,
             'order_id': str(result.inserted_id),
+            'montant_total': data['montant'],
+            'nombre_articles': nombre_articles,
             'payment_details': payment_result
         }), 201
 
     except Exception as e:
-        print(f"[VIVAL] Erreur enregistrement: {str(e)}")
+        print(f"❌ [VIVAL] Erreur lors de l'enregistrement: {str(e)}")
+        import traceback
+        print(f"📋 [VIVAL] Traceback complet:")
+        print(traceback.format_exc())
         return jsonify({
             'error': 'Paiement initié mais erreur lors de l\'enregistrement de la commande',
             'transID': trans_id,
@@ -122,8 +265,8 @@ def vival_checkout():
         }), 500
 
 
-@app.route('/vival', methods=['POST'])
-def vival():
+@app.route('/apk/vival', methods=['POST'])
+def apk_vival():
     """
     Route existante pour enregistrer directement une commande Vival
     (sans passer par le paiement)
@@ -132,7 +275,7 @@ def vival():
     if 'transID' not in data or 'mobile' not in data or 'adresse' not in data or 'nom' not in data or 'commande' not in data:
         return jsonify({'error': 'Certains champs sont manquants'}), 400
 
-    if not validate_commandes_vival(data.get('commande', {})):
+    if not apk_validate_commandes_vival(data.get('commande', {})):
         return jsonify({'msg': 'Données de commande invalides'}), 400
 
     try:
@@ -144,18 +287,29 @@ def vival():
         return jsonify({'error': str(e)}), 500
 
 
-def validate_commandes_vival(commandes):
+def apk_validate_commandes_vival(commandes):
     """
-    Valide que tous les produits de la commande existent dans la base de données
+    Valide que tous les produits de la commande existent dans la base de données cat_vival
+
+    Structure attendue de commandes:
+    {
+        "65cf5106abf1d162d35664ae": {
+            "nom": "Pack de 8 x 1.5",
+            "prix": 2100,
+            "quantite": 2,
+            "description": "...",
+            "fileLink": "1_5l.png"
+        }
+    }
     """
     if not isinstance(commandes, dict) or len(commandes) == 0:
         print("[VIVAL] Commande vide ou format invalide")
         return False
 
-    for cle, valeur in commandes.items():
+    for product_id, valeur in commandes.items():
         try:
-            # Extraire l'ID du produit (format: "product_id_quantity")
-            id_commande = cle.split("_")[0]
+            # Extraire l'ID du produit (supporte "id_qty" ou juste "id")
+            id_commande = product_id.split("_")[0] if "_" in product_id else product_id
 
             # Valider que c'est un ObjectId valide
             if not ObjectId.is_valid(id_commande):
@@ -165,35 +319,59 @@ def validate_commandes_vival(commandes):
             object_id = ObjectId(id_commande)
 
             # Vérifier que le produit existe dans le catalogue
-            rep = euroshop_db.cat_vival.find_one({"_id": object_id})
+            product_in_db = euroshop_db.cat_vival.find_one({"_id": object_id})
 
-            if not rep:
-                print(f"[VIVAL] Produit non trouvé: {id_commande}")
+            if not product_in_db:
+                print(f"[VIVAL] Produit non trouvé dans cat_vival: {id_commande}")
                 return False
 
             # Valider les données du produit dans la commande
             if not isinstance(valeur, dict):
-                print(f"[VIVAL] Format de produit invalide pour: {cle}")
+                print(f"[VIVAL] Format de produit invalide pour: {product_id}")
                 return False
 
             # Vérifier les champs requis
-            required_product_fields = ['nom', 'prix', 'quantite']
-            for field in required_product_fields:
-                if field not in valeur:
-                    print(f"[VIVAL] Champ manquant '{field}' pour produit: {cle}")
-                    return False
+            if 'quantite' not in valeur or not isinstance(valeur['quantite'], (int, float)):
+                print(f"[VIVAL] Quantité manquante ou invalide pour: {product_id}")
+                return False
 
-            print(f"[VIVAL] Produit validé: {valeur['nom']} x{valeur['quantite']}")
+            if valeur['quantite'] <= 0:
+                print(f"[VIVAL] Quantité doit être supérieure à 0 pour: {product_id}")
+                return False
+
+            # Valider que le prix correspond (optionnel mais recommandé)
+            if 'prix' in valeur and valeur['prix'] != product_in_db['prix']:
+                print(f"[VIVAL] ATTENTION: Prix différent pour {product_in_db['nom']}: "
+                      f"commande={valeur['prix']}, DB={product_in_db['prix']}")
+
+            print(f"[VIVAL] ✓ Produit validé: {product_in_db['nom']} (ID: {id_commande}) x{valeur['quantite']} "
+                  f"= {product_in_db['prix'] * valeur['quantite']} FCFA")
 
         except Exception as e:
-            print(f"[VIVAL] Erreur validation produit {cle}: {str(e)}")
+            print(f"[VIVAL] Erreur validation produit {product_id}: {str(e)}")
             return False
 
     return True
 
 
-@app.route('/vival/payment/callback', methods=['POST'])
-def vival_payment_callback():
+def apk_update_product_sales(enriched_commande):
+    """
+    Met à jour le compteur 'vendu' dans cat_vival pour chaque produit commandé
+    """
+    try:
+        for product_id, item in enriched_commande.items():
+            euroshop_db.cat_vival.update_one(
+                {'_id': ObjectId(product_id)},
+                {'$inc': {'vendu': item['quantite']}}
+            )
+            print(f"[VIVAL] ✓ Compteur vendu mis à jour pour {item['nom']}: +{item['quantite']}")
+
+    except Exception as e:
+        print(f"[VIVAL] Erreur mise à jour compteur vendu: {str(e)}")
+
+
+@app.route('/apk/vival/payment/callback', methods=['POST'])
+def apk_vival_payment_callback():
     """
     Route de callback pour recevoir les mises à jour de statut de paiement
     """
@@ -233,8 +411,8 @@ def vival_payment_callback():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/vival/orders/<order_id>', methods=['GET'])
-def get_vival_order(order_id):
+@app.route('/apk/vival/orders/<order_id>', methods=['GET'])
+def apk_get_vival_order(order_id):
     """
     Récupérer les détails d'une commande Vival
     """

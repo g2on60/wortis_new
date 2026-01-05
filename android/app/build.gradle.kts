@@ -5,6 +5,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Charger les propriétés du keystore depuis key.properties
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(keystorePropertiesFile.inputStream())
+}
+
 android {
     namespace = "cg.wortispay.wortispay"
     compileSdk = flutter.compileSdkVersion
@@ -19,15 +26,16 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
-        freeCompilerArgs = listOf("-Xskip-runtime-version-check", "-Xno-warn-unchecked-cast")
     }
 
     signingConfigs {
         create("release") {
-            keyAlias = "key0"
-            keyPassword = "wortispay.cg"
-            storeFile = file("/Users/wortis/Downloads/wortis_new/KeyStoreAndroid/deploy.3.0.0.wortispay.jks")
-            storePassword = "wortispay.cg"
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
         }
     }
 
