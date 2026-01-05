@@ -53,11 +53,6 @@ class OneSignalHelper {
 
   /// Afficher les informations actuelles de OneSignal
   static void printInfo() {
-    print('═══════════════════════════════════════');
-    print('📱 [OneSignal] INFORMATIONS:');
-    print('   - Abonné: ${isSubscribed() ? "OUI ✅" : "NON ❌"}');
-    print('   - Subscription ID: ${getSubscriptionId() ?? "Non disponible"}');
-    print('   - Push Token: ${getPushToken() ?? "Non disponible"}');
-    print('═══════════════════════════════════════');
+    // Logs supprimés
   }
 }

@@ -1100,7 +1100,9 @@ class _HomePageDiasState extends State<HomePageDias>
                 print('🔍 [HomePageDias] Service complet: $service');
 
                 try {
-                  if (service['Type_Service'] == "WebView") {
+                  final String typeService = (service['Type_Service'] ?? '').toString().trim().toLowerCase();
+
+                  if (typeService == "webview") {
                     print('➡️ [HomePageDias] Navigation vers WebView');
                     Navigator.push(
                       context,
@@ -1110,7 +1112,7 @@ class _HomePageDiasState extends State<HomePageDias>
                         ),
                       ),
                     );
-                  } else if (service['Type_Service'] == "Catalog") {
+                  } else if (typeService == "catalog") {
                     print('➡️ [HomePageDias] Navigation vers CatalogService');
                     await SessionManager.checkSessionAndNavigate(
                       context: context,
@@ -1725,6 +1727,15 @@ class _HomePageDiasState extends State<HomePageDias>
             url: service['link_view'] ?? '',
           ),
         ),
+      );
+    } else if (serviceType == "Catalog") {
+      // Type Catalog → CatalogService
+      await SessionManager.checkSessionAndNavigate(
+        context: context,
+        authenticatedRoute: ServicePageTransitionDias(
+          page: CatalogService(serviceName: service['name']),
+        ),
+        unauthenticatedRoute: const AuthentificationPage(),
       );
     } else {
       // Autres types → FormService
@@ -2649,6 +2660,16 @@ class _HomePageDiasState extends State<HomePageDias>
                     url: service['link_view'] ?? '',
                   ),
                 ),
+              );
+            }
+          } else if (service['Type_Service'] == "Catalog") {
+            if (mounted && context.mounted) {
+              await SessionManager.checkSessionAndNavigate(
+                context: context,
+                authenticatedRoute: ServicePageTransitionDias(
+                  page: CatalogService(serviceName: service['name']),
+                ),
+                unauthenticatedRoute: const AuthentificationPage(),
               );
             }
           } else {

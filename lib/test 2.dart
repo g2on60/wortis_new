@@ -29,17 +29,11 @@ class _TestUploadPageState extends State<TestUploadPage> {
           _selectedFile = File(result.files.single.path!);
           _status = "Fichier sélectionné: ${result.files.single.name}";
         });
-
-        print("✅ Fichier sélectionné:");
-        print("  - Nom: ${result.files.single.name}");
-        print("  - Chemin: ${result.files.single.path}");
-        print("  - Taille: ${result.files.single.size} bytes");
       }
     } catch (e) {
       setState(() {
         _status = "Erreur lors de la sélection: $e";
       });
-      print("❌ Erreur: $e");
     }
   }
 
@@ -57,10 +51,6 @@ class _TestUploadPageState extends State<TestUploadPage> {
     });
 
     try {
-      print("\n${"=" * 50}");
-      print("🚀 DÉBUT TEST UPLOAD");
-      print("=" * 50);
-
       // Créer la requête multipart
       var request = http.MultipartRequest(
         'POST',
@@ -74,20 +64,12 @@ class _TestUploadPageState extends State<TestUploadPage> {
       request.fields['experience'] = 'Junior';
       request.fields['token'] = 'test_token_123';
 
-      print("📋 Champs texte ajoutés:");
-      request.fields.forEach((key, value) {
-        print("  - $key: $value");
-      });
-
       // Lire le fichier
       final fileBytes = await _selectedFile!.readAsBytes();
-      print("\n📦 Fichier à envoyer:");
-      print("  - Taille: ${fileBytes.length} bytes");
 
       // Détecter le MIME type
       final mimeType =
           lookupMimeType(_selectedFile!.path) ?? 'application/octet-stream';
-      print("  - MIME: $mimeType");
 
       // Créer multipart pour CV
       final cvFile = http.MultipartFile.fromBytes(
@@ -97,7 +79,6 @@ class _TestUploadPageState extends State<TestUploadPage> {
         contentType: MediaType('application', 'pdf'),
       );
       request.files.add(cvFile);
-      print("  ✅ CV ajouté au champ 'cv'");
 
       // Créer multipart pour lettre (même fichier pour le test)
       final lettreFile = http.MultipartFile.fromBytes(
@@ -107,25 +88,10 @@ class _TestUploadPageState extends State<TestUploadPage> {
         contentType: MediaType('application', 'pdf'),
       );
       request.files.add(lettreFile);
-      print("  ✅ Lettre ajoutée au champ 'lettre'");
-
-      print("\n📊 Résumé de la requête:");
-      print("  - Champs: ${request.fields.length}");
-      print("  - Fichiers: ${request.files.length}");
-
-      for (var file in request.files) {
-        print("    • ${file.field}: ${file.filename} (${file.length} bytes)");
-      }
 
       // Envoyer la requête
-      print("\n🚀 Envoi de la requête...");
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-
-      print("\n📥 RÉPONSE REÇUE:");
-      print("  - Status: ${response.statusCode}");
-      print("  - Body: ${response.body}");
-      print("=" * 50 + "\n");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         setState(() {
@@ -139,9 +105,6 @@ class _TestUploadPageState extends State<TestUploadPage> {
         });
       }
     } catch (e, stackTrace) {
-      print("❌ ERREUR: $e");
-      print("Stack: $stackTrace");
-
       setState(() {
         _status = "❌ Erreur: $e";
         _isLoading = false;

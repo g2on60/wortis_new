@@ -1072,7 +1072,9 @@ class _HomePageState extends State<HomePage>
                 print('🔍 [HomePage] Service complet: $service');
 
                 try {
-                  if (service['Type_Service'] == "WebView") {
+                  final String typeService = (service['Type_Service'] ?? '').toString().trim().toLowerCase();
+
+                  if (typeService == "webview") {
                     print('➡️ [HomePage] Navigation vers WebView');
                     Navigator.push(
                       context,
@@ -1082,7 +1084,7 @@ class _HomePageState extends State<HomePage>
                         ),
                       ),
                     );
-                  } else if (service['Type_Service'] == "Catalog") {
+                  } else if (typeService == "catalog") {
                     print('➡️ [HomePage] Navigation vers CatalogService');
                     await SessionManager.checkSessionAndNavigate(
                       context: context,
@@ -1663,6 +1665,14 @@ class _HomePageState extends State<HomePage>
                 ),
               ),
             );
+          } else if (service['Type_Service'] == "Catalog") {
+            await SessionManager.checkSessionAndNavigate(
+              context: context,
+              authenticatedRoute: ServicePageTransition(
+                page: CatalogService(serviceName: service['name']),
+              ),
+              unauthenticatedRoute: const AuthentificationPage(),
+            );
           } else {
             await SessionManager.checkSessionAndNavigate(
               context: context,
@@ -1925,13 +1935,32 @@ class _HomePageState extends State<HomePage>
 
                     if (!mounted) return;
 
-                    await SessionManager.checkSessionAndNavigate(
-                      context: context,
-                      authenticatedRoute: ServicePageTransition(
-                        page: FormService(serviceName: service['name']),
-                      ),
-                      unauthenticatedRoute: const AuthentificationPage(),
-                    );
+                    if (service['Type_Service'] == "WebView") {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ServiceWebView(
+                            url: service['link_view'] ?? '',
+                          ),
+                        ),
+                      );
+                    } else if (service['Type_Service'] == "Catalog") {
+                      await SessionManager.checkSessionAndNavigate(
+                        context: context,
+                        authenticatedRoute: ServicePageTransition(
+                          page: CatalogService(serviceName: service['name']),
+                        ),
+                        unauthenticatedRoute: const AuthentificationPage(),
+                      );
+                    } else {
+                      await SessionManager.checkSessionAndNavigate(
+                        context: context,
+                        authenticatedRoute: ServicePageTransition(
+                          page: FormService(serviceName: service['name']),
+                        ),
+                        unauthenticatedRoute: const AuthentificationPage(),
+                      );
+                    }
                   },
                   child: Container(
                     decoration: BoxDecoration(
@@ -2183,6 +2212,16 @@ class _HomePageState extends State<HomePage>
                         url: service['link_view'] ?? '',
                       ),
                     ),
+                  );
+                }
+              } else if (service['Type_Service'] == "Catalog") {
+                if (mounted && context.mounted) {
+                  await SessionManager.checkSessionAndNavigate(
+                    context: context,
+                    authenticatedRoute: ServicePageTransition(
+                      page: CatalogService(serviceName: service['name']),
+                    ),
+                    unauthenticatedRoute: const AuthentificationPage(),
                   );
                 }
               } else {
@@ -3712,11 +3751,30 @@ class _HomePageState extends State<HomePage>
           if (!context.mounted) return;
 
           if (hasInternet) {
-            await SessionManager.checkSessionAndNavigate(
-              context: context,
-              authenticatedRoute: FormService(serviceName: serviceName),
-              unauthenticatedRoute: const AuthentificationPage(),
-            );
+            if (service['Type_Service'] == "WebView") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ServiceWebView(
+                    url: service['link_view'] ?? '',
+                  ),
+                ),
+              );
+            } else if (service['Type_Service'] == "Catalog") {
+              await SessionManager.checkSessionAndNavigate(
+                context: context,
+                authenticatedRoute: ServicePageTransition(
+                  page: CatalogService(serviceName: serviceName),
+                ),
+                unauthenticatedRoute: const AuthentificationPage(),
+              );
+            } else {
+              await SessionManager.checkSessionAndNavigate(
+                context: context,
+                authenticatedRoute: FormService(serviceName: serviceName),
+                unauthenticatedRoute: const AuthentificationPage(),
+              );
+            }
           } else {
             showNoInternetDialog();
           }
