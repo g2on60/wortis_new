@@ -61,10 +61,7 @@ class FormStyles {
       fontSize: 14,
       fontWeight: FontWeight.w500,
     ),
-    hintStyle: TextStyle(
-      color: textColor.withOpacity(0.5),
-      fontSize: 14,
-    ),
+    hintStyle: TextStyle(color: textColor.withOpacity(0.5), fontSize: 14),
     errorStyle: const TextStyle(
       color: errorColor,
       fontSize: 12,
@@ -77,9 +74,7 @@ class FormStyles {
     foregroundColor: Colors.white,
     elevation: 0,
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     textStyle: const TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.w600,
@@ -91,9 +86,7 @@ class FormStyles {
     foregroundColor: primaryColor,
     side: const BorderSide(color: primaryColor, width: 1.5),
     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
     textStyle: const TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.w600,
@@ -184,7 +177,8 @@ class _FormServiceState extends State<FormService> {
   Map<String, dynamic> _normalizeField(Map<String, dynamic> field) {
     Map<String, dynamic> normalizedField = {
       'name': field['nom'] ?? field['name'] ?? '',
-      'label': field['étiquette'] ??
+      'label':
+          field['étiquette'] ??
           field['label'] ??
           field['nom'] ??
           field['name'] ??
@@ -200,11 +194,12 @@ class _FormServiceState extends State<FormService> {
     };
 
     if (field['options'] != null) {
-      normalizedField['options'] =
-          field['options'].map<Map<String, String>>((option) {
+      normalizedField['options'] = field['options'].map<Map<String, String>>((
+        option,
+      ) {
         return {
           'value': option['value'] ?? option['valeur'] ?? '',
-          'label': option['label'] ?? option['étiquette'] ?? ''
+          'label': option['label'] ?? option['étiquette'] ?? '',
         };
       }).toList();
     }
@@ -218,11 +213,12 @@ class _FormServiceState extends State<FormService> {
         };
 
         if (dep['options'] != null) {
-          normalizedDep['options'] =
-              dep['options'].map<Map<String, String>>((option) {
+          normalizedDep['options'] = dep['options'].map<Map<String, String>>((
+            option,
+          ) {
             return {
               'value': option['value'] ?? option['valeur'] ?? '',
-              'label': option['label'] ?? option['étiquette'] ?? ''
+              'label': option['label'] ?? option['étiquette'] ?? '',
             };
           }).toList();
         }
@@ -250,8 +246,9 @@ class _FormServiceState extends State<FormService> {
 
   Future<void> fetchServiceFields() async {
     try {
-      final responseData =
-          await _apiService.fetchServiceFields(widget.serviceName);
+      final responseData = await _apiService.fetchServiceFields(
+        widget.serviceName,
+      );
 
       serviceData = _normalizeApiData(responseData['service']);
       await initializeFormValues(); // Appel asynchrone
@@ -262,9 +259,10 @@ class _FormServiceState extends State<FormService> {
     } catch (e) {
       print('Erreur : $e');
       if (mounted) {
-        CustomOverlay.showError(context,
-            message:
-                'Erreur lors de la récupération des données du formulaire');
+        CustomOverlay.showError(
+          context,
+          message: 'Erreur lors de la récupération des données du formulaire',
+        );
       }
     }
   }
@@ -282,7 +280,9 @@ class _FormServiceState extends State<FormService> {
         return jsonDecode(userInfoString);
       }
     } catch (e) {
-      print('⚠️  [FormService] Impossible de récupérer les données utilisateur: $e');
+      print(
+        '⚠️  [FormService] Impossible de récupérer les données utilisateur: $e',
+      );
     }
     return null;
   }
@@ -299,7 +299,9 @@ class _FormServiceState extends State<FormService> {
     // Récupérer les données utilisateur pour le pré-remplissage
     final userInfo = await _getUserInfoFromStorage();
     if (userInfo != null) {
-      print('📝 [FormService] Données utilisateur chargées depuis SharedPreferences');
+      print(
+        '📝 [FormService] Données utilisateur chargées depuis SharedPreferences',
+      );
       print('✅ [FormService] Champs disponibles: ${userInfo.keys.toList()}');
     }
 
@@ -310,9 +312,13 @@ class _FormServiceState extends State<FormService> {
 
       // Valeur par défaut depuis les données utilisateur si tag correspond
       dynamic defaultValue;
-      if (fieldTag != null && userInfo != null && userInfo.containsKey(fieldTag)) {
+      if (fieldTag != null &&
+          userInfo != null &&
+          userInfo.containsKey(fieldTag)) {
         defaultValue = userInfo[fieldTag];
-        print('🔄 [FormService] Pré-remplissage du champ "$fieldName" (tag: "$fieldTag") avec: $defaultValue');
+        print(
+          '🔄 [FormService] Pré-remplissage du champ "$fieldName" (tag: "$fieldTag") avec: $defaultValue',
+        );
       }
 
       switch (fieldType) {
@@ -324,8 +330,13 @@ class _FormServiceState extends State<FormService> {
           break;
         default:
           formValues[fieldName] = defaultValue;
-          if (['text', 'number', 'date', 'time', 'datetime']
-              .contains(fieldType)) {
+          if ([
+            'text',
+            'number',
+            'date',
+            'time',
+            'datetime',
+          ].contains(fieldType)) {
             controllers[fieldName] = TextEditingController(
               text: defaultValue?.toString() ?? '',
             );
@@ -579,8 +590,13 @@ class _FormServiceState extends State<FormService> {
                 offset: defaultValue?.toString().length ?? 0,
               ),
             );
-          } else if (['text', 'number', 'date', 'time', 'datetime']
-              .contains(field['type'])) {
+          } else if ([
+            'text',
+            'number',
+            'date',
+            'time',
+            'datetime',
+          ].contains(field['type'])) {
             controllers[fieldName] = TextEditingController(
               text: defaultValue?.toString() ?? '',
             );
@@ -618,9 +634,14 @@ class _FormServiceState extends State<FormService> {
       try {
         final response = requestMethod == 'POST'
             ? await _apiService.verifyDataPost(
-                currentStepData['link'], requestBody, operationId)
+                currentStepData['link'],
+                requestBody,
+                operationId,
+              )
             : await _apiService.verifyDataGet(
-                currentStepData['link'], requestBody);
+                currentStepData['link'],
+                requestBody,
+              );
 
         CustomOverlay.hide();
 
@@ -657,7 +678,8 @@ class _FormServiceState extends State<FormService> {
                 );
               } else {
                 controllers[fieldName]?.value = TextEditingValue(
-                    text: formValues[fieldName]?.toString() ?? '');
+                  text: formValues[fieldName]?.toString() ?? '',
+                );
               }
             });
           }
@@ -687,10 +709,7 @@ class _FormServiceState extends State<FormService> {
       CustomOverlay.hide();
 
       if (mounted) {
-        CustomOverlay.showError(
-          context,
-          message: 'Informations non trouvées',
-        );
+        CustomOverlay.showError(context, message: 'Informations non trouvées');
       }
     }
   }
@@ -716,16 +735,19 @@ class _FormServiceState extends State<FormService> {
 
       if (!['text', 'number'].contains(field['type']) &&
           controllers.containsKey(fieldName)) {
-        controllers[fieldName]?.value =
-            TextEditingValue(text: value?.toString() ?? '');
+        controllers[fieldName]?.value = TextEditingValue(
+          text: value?.toString() ?? '',
+        );
       }
 
       if (fields != null) {
         for (var field in fields) {
           if (field['dependencies'] != null) {
-            bool shouldReset = field['dependencies'].any((dependency) =>
-                dependency['field'] == fieldName &&
-                dependency['value'] != value);
+            bool shouldReset = field['dependencies'].any(
+              (dependency) =>
+                  dependency['field'] == fieldName &&
+                  dependency['value'] != value,
+            );
 
             if (shouldReset) {
               String dependentFieldName = field['name'];
@@ -750,7 +772,8 @@ class _FormServiceState extends State<FormService> {
   }
 
   List<DropdownMenuItem<String>> getDropdownOptions(
-      Map<String, dynamic> field) {
+    Map<String, dynamic> field,
+  ) {
     List<DropdownMenuItem<String>> items = [];
 
     try {
@@ -792,7 +815,9 @@ class _FormServiceState extends State<FormService> {
   // ============================================
 
   Future<void> _pickDocument(
-      String fieldName, Map<String, dynamic> field) async {
+    String fieldName,
+    Map<String, dynamic> field,
+  ) async {
     try {
       List<String>? allowedExtensions;
       FileType fileType = FileType.any;
@@ -827,7 +852,8 @@ class _FormServiceState extends State<FormService> {
           for (var file in result.files) {
             if (file.path != null) {
               files.add(
-                  await _createUploadedFile(file.path!, file.name, file.size));
+                await _createUploadedFile(file.path!, file.name, file.size),
+              );
             }
           }
           setState(() {
@@ -836,8 +862,11 @@ class _FormServiceState extends State<FormService> {
         } else {
           PlatformFile file = result.files.first;
           if (file.path != null) {
-            UploadedFile uploadedFile =
-                await _createUploadedFile(file.path!, file.name, file.size);
+            UploadedFile uploadedFile = await _createUploadedFile(
+              file.path!,
+              file.name,
+              file.size,
+            );
             setState(() {
               formValues[fieldName] = uploadedFile;
             });
@@ -847,8 +876,10 @@ class _FormServiceState extends State<FormService> {
     } catch (e) {
       print('Erreur lors de la sélection du fichier : $e');
       if (mounted) {
-        CustomOverlay.showError(context,
-            message: 'Erreur lors de la sélection du fichier');
+        CustomOverlay.showError(
+          context,
+          message: 'Erreur lors de la sélection du fichier',
+        );
       }
     }
   }
@@ -877,14 +908,19 @@ class _FormServiceState extends State<FormService> {
     } catch (e) {
       print('Erreur lors de la sélection de l\'image : $e');
       if (mounted) {
-        CustomOverlay.showError(context,
-            message: 'Erreur lors de la sélection de l\'image');
+        CustomOverlay.showError(
+          context,
+          message: 'Erreur lors de la sélection de l\'image',
+        );
       }
     }
   }
 
   Future<UploadedFile> _createUploadedFile(
-      String filePath, String fileName, int fileSize) async {
+    String filePath,
+    String fileName,
+    int fileSize,
+  ) async {
     File file = File(filePath);
     String? mimeType = lookupMimeType(filePath);
 
@@ -906,8 +942,9 @@ class _FormServiceState extends State<FormService> {
   void _removeFile(String fieldName, {int? index}) {
     setState(() {
       if (index != null) {
-        List<UploadedFile> files =
-            List<UploadedFile>.from(formValues[fieldName]);
+        List<UploadedFile> files = List<UploadedFile>.from(
+          formValues[fieldName],
+        );
         files.removeAt(index);
         formValues[fieldName] = files;
       } else {
@@ -931,14 +968,18 @@ class _FormServiceState extends State<FormService> {
     if (mimeType.startsWith('video/')) return Icons.videocam;
     if (mimeType.startsWith('audio/')) return Icons.audiotrack;
     if (mimeType.contains('pdf')) return Icons.picture_as_pdf;
-    if (mimeType.contains('word') || mimeType.contains('document'))
+    if (mimeType.contains('word') || mimeType.contains('document')) {
       return Icons.description;
-    if (mimeType.contains('sheet') || mimeType.contains('excel'))
+    }
+    if (mimeType.contains('sheet') || mimeType.contains('excel')) {
       return Icons.table_chart;
-    if (mimeType.contains('presentation') || mimeType.contains('powerpoint'))
+    }
+    if (mimeType.contains('presentation') || mimeType.contains('powerpoint')) {
       return Icons.slideshow;
-    if (mimeType.contains('zip') || mimeType.contains('rar'))
+    }
+    if (mimeType.contains('zip') || mimeType.contains('rar')) {
       return Icons.folder_zip;
+    }
     return Icons.insert_drive_file;
   }
 
@@ -975,8 +1016,11 @@ class _FormServiceState extends State<FormService> {
     return message;
   }
 
-  String? _validateWithRegex(String? value, String regexPattern,
-      {String? customErrorMessage}) {
+  String? _validateWithRegex(
+    String? value,
+    String regexPattern, {
+    String? customErrorMessage,
+  }) {
     if (value == null || value.isEmpty) return null;
 
     try {
@@ -1039,8 +1083,11 @@ class _FormServiceState extends State<FormService> {
                 }
               }
               if (regexPattern != null && regexPattern.isNotEmpty) {
-                String? regexError = _validateWithRegex(value, regexPattern,
-                    customErrorMessage: customRegexError);
+                String? regexError = _validateWithRegex(
+                  value,
+                  regexPattern,
+                  customErrorMessage: customRegexError,
+                );
                 if (regexError != null) {
                   return regexError;
                 }
@@ -1124,10 +1171,12 @@ class _FormServiceState extends State<FormService> {
 
                     if (picked != null && mounted) {
                       setState(() {
-                        String formattedDate =
-                            DateFormat('yyyy-MM-dd').format(picked);
-                        controllers[fieldName]?.value =
-                            TextEditingValue(text: formattedDate);
+                        String formattedDate = DateFormat(
+                          'yyyy-MM-dd',
+                        ).format(picked);
+                        controllers[fieldName]?.value = TextEditingValue(
+                          text: formattedDate,
+                        );
                         updateFormValue(fieldName, formattedDate);
                       });
                     }
@@ -1165,8 +1214,9 @@ class _FormServiceState extends State<FormService> {
                     );
                     if (picked != null) {
                       setState(() {
-                        controllers[fieldName]?.value =
-                            TextEditingValue(text: picked.format(context));
+                        controllers[fieldName]?.value = TextEditingValue(
+                          text: picked.format(context),
+                        );
                         updateFormValue(fieldName, picked.format(context));
                       });
                     }
@@ -1220,10 +1270,12 @@ class _FormServiceState extends State<FormService> {
                           time.minute,
                         );
                         setState(() {
-                          String formattedDateTime =
-                              DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
-                          controllers[fieldName]?.value =
-                              TextEditingValue(text: formattedDateTime);
+                          String formattedDateTime = DateFormat(
+                            'yyyy-MM-dd HH:mm',
+                          ).format(dateTime);
+                          controllers[fieldName]?.value = TextEditingValue(
+                            text: formattedDateTime,
+                          );
                           updateFormValue(fieldName, formattedDateTime);
                         });
                       }
@@ -1308,13 +1360,17 @@ class _FormServiceState extends State<FormService> {
                           ? null
                           : () => _pickImage(fieldName, ImageSource.camera),
                       icon: const Icon(Icons.camera_alt, size: 20),
-                      label:
-                          const Text('Photo', style: TextStyle(fontSize: 14)),
+                      label: const Text(
+                        'Photo',
+                        style: TextStyle(fontSize: 14),
+                      ),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: FormStyles.primaryColor,
                         side: const BorderSide(color: FormStyles.primaryColor),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -1327,15 +1383,22 @@ class _FormServiceState extends State<FormService> {
                       .asMap()
                       .entries
                       .map((entry) {
-                    int index = entry.key;
-                    UploadedFile file = entry.value;
-                    return _buildFilePreview(file, fieldName,
-                        index: index, isReadOnly: isReadOnly);
-                  }).toList())
+                        int index = entry.key;
+                        UploadedFile file = entry.value;
+                        return _buildFilePreview(
+                          file,
+                          fieldName,
+                          index: index,
+                          isReadOnly: isReadOnly,
+                        );
+                      })
+                      .toList())
                 else
                   _buildFilePreview(
-                      formValues[fieldName] as UploadedFile, fieldName,
-                      isReadOnly: isReadOnly),
+                    formValues[fieldName] as UploadedFile,
+                    fieldName,
+                    isReadOnly: isReadOnly,
+                  ),
               ],
             ],
           ),
@@ -1349,8 +1412,12 @@ class _FormServiceState extends State<FormService> {
     }
   }
 
-  Widget _buildFilePreview(UploadedFile file, String fieldName,
-      {int? index, bool isReadOnly = false}) {
+  Widget _buildFilePreview(
+    UploadedFile file,
+    String fieldName, {
+    int? index,
+    bool isReadOnly = false,
+  }) {
     bool isImage = file.mimeType?.startsWith('image/') ?? false;
 
     return Container(
@@ -1429,10 +1496,7 @@ class _FormServiceState extends State<FormService> {
               color: FormStyles.errorColor,
               onPressed: () => _removeFile(fieldName, index: index),
               padding: const EdgeInsets.all(8),
-              constraints: const BoxConstraints(
-                minWidth: 40,
-                minHeight: 40,
-              ),
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
             ),
         ],
       ),
@@ -1446,8 +1510,9 @@ class _FormServiceState extends State<FormService> {
       formValues[fieldName] = <Map<String, dynamic>>[];
     }
 
-    List<Map<String, dynamic>> fieldValues =
-        List<Map<String, dynamic>>.from(formValues[fieldName]);
+    List<Map<String, dynamic>> fieldValues = List<Map<String, dynamic>>.from(
+      formValues[fieldName],
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1497,8 +1562,10 @@ class _FormServiceState extends State<FormService> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete,
-                                  color: FormStyles.errorColor),
+                              icon: const Icon(
+                                Icons.delete,
+                                color: FormStyles.errorColor,
+                              ),
                               onPressed: () {
                                 setState(() {
                                   fieldValues.removeAt(index);
@@ -1516,7 +1583,7 @@ class _FormServiceState extends State<FormService> {
                             child: TextFormField(
                               initialValue:
                                   fieldValues[index][optionName]?.toString() ??
-                                      '',
+                                  '',
                               decoration: InputDecoration(
                                 labelText: option['label'],
                                 filled: true,
@@ -1581,8 +1648,9 @@ class _FormServiceState extends State<FormService> {
             child: LinearProgressIndicator(
               value: (currentStep + 1) / serviceData!['steps'].length,
               backgroundColor: Colors.grey[200],
-              valueColor:
-                  const AlwaysStoppedAnimation<Color>(FormStyles.primaryColor),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                FormStyles.primaryColor,
+              ),
               minHeight: 8,
             ),
           ),
@@ -1604,8 +1672,9 @@ class _FormServiceState extends State<FormService> {
         children: [
           if (serviceData!['banner'] != null)
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
               child: Image.network(
                 serviceData!['banner'],
                 width: double.infinity,
@@ -1621,8 +1690,11 @@ class _FormServiceState extends State<FormService> {
                   return Container(
                     color: Colors.grey[200],
                     child: const Center(
-                      child: Icon(Icons.error_outline,
-                          color: FormStyles.errorColor, size: 32),
+                      child: Icon(
+                        Icons.error_outline,
+                        color: FormStyles.errorColor,
+                        size: 32,
+                      ),
                     ),
                   );
                 },
@@ -1638,14 +1710,19 @@ class _FormServiceState extends State<FormService> {
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                            color: Colors.grey.withOpacity(0.2), width: 1),
+                          color: Colors.grey.withOpacity(0.2),
+                          width: 1,
+                        ),
                       ),
                     ),
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Row(
                       children: [
-                        const Icon(Icons.info_outline,
-                            color: FormStyles.primaryColor, size: 20),
+                        const Icon(
+                          Icons.info_outline,
+                          color: FormStyles.primaryColor,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           serviceData!['tite_description'] ?? 'Description',
@@ -1673,14 +1750,19 @@ class _FormServiceState extends State<FormService> {
                       decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(
-                              color: Colors.grey.withOpacity(0.2), width: 1),
+                            color: Colors.grey.withOpacity(0.2),
+                            width: 1,
+                          ),
                         ),
                       ),
                       padding: const EdgeInsets.only(top: 12),
                       child: Row(
                         children: [
-                          const Icon(Icons.help_outline,
-                              color: FormStyles.primaryColor, size: 20),
+                          const Icon(
+                            Icons.help_outline,
+                            color: FormStyles.primaryColor,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           InkWell(
                             onTap: _showPaymentInstructionsModal,
@@ -1713,8 +1795,9 @@ class _FormServiceState extends State<FormService> {
         final isSmallScreen = size.width < 360;
 
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Container(
             constraints: BoxConstraints(maxHeight: size.height * 0.7),
             child: Column(
@@ -1782,8 +1865,11 @@ class _FormServiceState extends State<FormService> {
               margin: const EdgeInsets.only(bottom: 16),
               child: const Row(
                 children: [
-                  Icon(Icons.info_outline,
-                      color: FormStyles.primaryColor, size: 20),
+                  Icon(
+                    Icons.info_outline,
+                    color: FormStyles.primaryColor,
+                    size: 20,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'Informations détaillées',
@@ -1904,7 +1990,8 @@ class _FormServiceState extends State<FormService> {
     }
 
     var currentStepData = serviceData!['steps'][currentStep];
-    String buttonTitle = currentStepData['title_button'] ??
+    String buttonTitle =
+        currentStepData['title_button'] ??
         (currentStep == 0 ? 'Vérifier' : 'Payer');
 
     return Container(
@@ -1927,8 +2014,10 @@ class _FormServiceState extends State<FormService> {
                               verificationData = null;
                               var step2Fields = serviceData!['steps'][1];
                               if (step2Fields['api_fields'] != null) {
-                                step2Fields['api_fields']
-                                    .forEach((fieldName, _) {
+                                step2Fields['api_fields'].forEach((
+                                  fieldName,
+                                  _,
+                                ) {
                                   formValues.remove(fieldName);
                                   controllers[fieldName]?.clear();
                                 });
@@ -1953,8 +2042,9 @@ class _FormServiceState extends State<FormService> {
                         width: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : Text(
@@ -2056,7 +2146,9 @@ class _FormServiceState extends State<FormService> {
     double fraisService = 0;
     if (modalConfirm['frais_service'] != null) {
       if (modalConfirm['frais_service'] is Map) {
-        fraisService = double.parse(modalConfirm['frais_service']['\$numberLong']?.toString() ?? '0');
+        fraisService = double.parse(
+          modalConfirm['frais_service']['\$numberLong']?.toString() ?? '0',
+        );
       } else {
         fraisService = (modalConfirm['frais_service'] ?? 0).toDouble();
       }
@@ -2070,21 +2162,20 @@ class _FormServiceState extends State<FormService> {
       if (key != 'frais_operateur' && key != 'frais_service') {
         String fieldName = value.toString();
         // Check if this is the amount field (contains "Montant" or similar)
-        if (key.toLowerCase().contains('montant') || key.toLowerCase().contains('amount')) {
+        if (key.toLowerCase().contains('montant') ||
+            key.toLowerCase().contains('amount')) {
           amountFieldName = fieldName;
         }
-        displayFields.add({
-          'label': key,
-          'fieldName': fieldName,
-        });
+        displayFields.add({'label': key, 'fieldName': fieldName});
       }
     });
 
     // Calculate the total amount
     double totalAmount = 0;
     if (amountFieldName != null && formValues[amountFieldName] != null) {
-      double baseAmount = double.tryParse(formValues[amountFieldName].toString()) ?? 0;
-      totalAmount = (baseAmount * fraisOperateur) + fraisService + baseAmount ;
+      double baseAmount =
+          double.tryParse(formValues[amountFieldName].toString()) ?? 0;
+      totalAmount = (baseAmount * fraisOperateur) + fraisService + baseAmount;
     }
 
     showDialog(
@@ -2119,9 +2210,9 @@ class _FormServiceState extends State<FormService> {
     final size = MediaQuery.of(context).size;
 
     return Theme(
-      data: Theme.of(context).copyWith(
-        inputDecorationTheme: FormStyles.inputDecoration,
-      ),
+      data: Theme.of(
+        context,
+      ).copyWith(inputDecorationTheme: FormStyles.inputDecoration),
       child: Scaffold(
         backgroundColor: FormStyles.backgroundColor,
         appBar: AppBar(
@@ -2154,59 +2245,63 @@ class _FormServiceState extends State<FormService> {
             return isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : serviceData == null
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              FormStyles.primaryColor),
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        FormStyles.primaryColor,
+                      ),
+                    ),
+                  )
+                : SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: GestureDetector(
+                      onTap: () {
+                        FocusScope.of(context).unfocus();
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: horizontalPadding,
+                          right: horizontalPadding,
+                          top: verticalPadding,
+                          bottom: maxHeight * 0.1,
                         ),
-                      )
-                    : SingleChildScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        child: GestureDetector(
-                          onTap: () {
-                            FocusScope.of(context).unfocus();
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              left: horizontalPadding,
-                              right: horizontalPadding,
-                              top: verticalPadding,
-                              bottom: maxHeight * 0.1,
-                            ),
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  buildBanner(),
-                                  Container(
-                                    width: maxWidth * 0.9,
-                                    child: buildProgressIndicator(),
-                                  ),
-                                  SizedBox(height: fieldSpacing),
-                                  ...buildCurrentStepFields()
-                                      .map((field) => Container(
-                                            width: maxWidth * 0.9,
-                                            margin: EdgeInsets.only(
-                                                bottom: fieldSpacing),
-                                            child: field,
-                                          ))
-                                      .toList(),
-                                  Container(
-                                    width: maxWidth * 0.9,
-                                    margin: EdgeInsets.only(
-                                      top: fieldSpacing * 2,
-                                      bottom: fieldSpacing,
-                                    ),
-                                    child: buildNavigationButtons(),
-                                  ),
-                                  SizedBox(height: maxHeight * 0.05),
-                                ],
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              buildBanner(),
+                              Container(
+                                width: maxWidth * 0.9,
+                                child: buildProgressIndicator(),
                               ),
-                            ),
+                              SizedBox(height: fieldSpacing),
+                              ...buildCurrentStepFields()
+                                  .map(
+                                    (field) => Container(
+                                      width: maxWidth * 0.9,
+                                      margin: EdgeInsets.only(
+                                        bottom: fieldSpacing,
+                                      ),
+                                      child: field,
+                                    ),
+                                  )
+                                  .toList(),
+                              Container(
+                                width: maxWidth * 0.9,
+                                margin: EdgeInsets.only(
+                                  top: fieldSpacing * 2,
+                                  bottom: fieldSpacing,
+                                ),
+                                child: buildNavigationButtons(),
+                              ),
+                              SizedBox(height: maxHeight * 0.05),
+                            ],
                           ),
                         ),
-                      );
+                      ),
+                    ),
+                  );
           },
         ),
       ),
@@ -2266,18 +2361,12 @@ class _SimpleConfirmationDialogState extends State<_SimpleConfirmationDialog>
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutBack,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward();
   }
@@ -2385,7 +2474,10 @@ class _SimpleConfirmationDialogState extends State<_SimpleConfirmationDialog>
                     ),
                     Padding(
                       padding: const EdgeInsets.only(
-                          left: 24, right: 24, bottom: 24),
+                        left: 24,
+                        right: 24,
+                        bottom: 24,
+                      ),
                       child: Row(
                         children: [
                           if (widget.hasCancel)
@@ -2393,7 +2485,8 @@ class _SimpleConfirmationDialogState extends State<_SimpleConfirmationDialog>
                               child: Container(
                                 height: 48,
                                 margin: EdgeInsets.only(
-                                    right: widget.hasConfirm ? 8 : 0),
+                                  right: widget.hasConfirm ? 8 : 0,
+                                ),
                                 child: _AnimatedButton(
                                   text: widget.cancelText!,
                                   onPressed: widget.onCancel,
@@ -2409,7 +2502,8 @@ class _SimpleConfirmationDialogState extends State<_SimpleConfirmationDialog>
                               child: Container(
                                 height: 48,
                                 margin: EdgeInsets.only(
-                                    left: widget.hasCancel ? 8 : 0),
+                                  left: widget.hasCancel ? 8 : 0,
+                                ),
                                 child: _AnimatedButton(
                                   text: widget.confirmText!,
                                   onPressed: widget.onConfirm,
@@ -2456,7 +2550,8 @@ class _PaymentConfirmationDialog extends StatefulWidget {
   });
 
   @override
-  _PaymentConfirmationDialogState createState() => _PaymentConfirmationDialogState();
+  _PaymentConfirmationDialogState createState() =>
+      _PaymentConfirmationDialogState();
 }
 
 class _PaymentConfirmationDialogState extends State<_PaymentConfirmationDialog>
@@ -2476,18 +2571,12 @@ class _PaymentConfirmationDialogState extends State<_PaymentConfirmationDialog>
     _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutBack,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward();
   }
@@ -2579,7 +2668,8 @@ class _PaymentConfirmationDialogState extends State<_PaymentConfirmationDialog>
                           ...widget.displayFields.map((field) {
                             String label = field['label']!;
                             String fieldName = field['fieldName']!;
-                            String value = widget.formValues[fieldName]?.toString() ?? '';
+                            String value =
+                                widget.formValues[fieldName]?.toString() ?? '';
 
                             // Special handling for amount field
                             if (fieldName == widget.amountFieldName) {
@@ -2587,10 +2677,14 @@ class _PaymentConfirmationDialogState extends State<_PaymentConfirmationDialog>
                                 margin: const EdgeInsets.only(bottom: 16),
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: FormStyles.primaryColor.withOpacity(0.05),
+                                  color: FormStyles.primaryColor.withOpacity(
+                                    0.05,
+                                  ),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: FormStyles.primaryColor.withOpacity(0.2),
+                                    color: FormStyles.primaryColor.withOpacity(
+                                      0.2,
+                                    ),
                                     width: 1,
                                   ),
                                 ),
@@ -2635,7 +2729,8 @@ class _PaymentConfirmationDialogState extends State<_PaymentConfirmationDialog>
                                     const Divider(height: 1, thickness: 2),
                                     const SizedBox(height: 8),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text(
                                           'Total à payer',
@@ -2698,7 +2793,11 @@ class _PaymentConfirmationDialogState extends State<_PaymentConfirmationDialog>
                     ),
                     // Buttons
                     Padding(
-                      padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+                      padding: const EdgeInsets.only(
+                        left: 24,
+                        right: 24,
+                        bottom: 24,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
@@ -2779,10 +2878,7 @@ class _AnimatedButtonState extends State<_AnimatedButton>
     _scaleAnimation = Tween<double>(
       begin: 1.0,
       end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override

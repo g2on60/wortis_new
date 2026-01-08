@@ -80,8 +80,8 @@ class AppDataProvider with ChangeNotifier {
 
   // ========== NOUVELLES VARIABLES FIREBASE ==========
   String? _fcmToken;
-  bool _isFirebaseInitialized = false;
-  bool _isFirebaseInitializing = false;
+  final bool _isFirebaseInitialized = false;
+  final bool _isFirebaseInitializing = false;
 
   // ========== SERVICES ==========
   final PushNotificationService _pushNotificationService;
@@ -89,8 +89,9 @@ class AppDataProvider with ChangeNotifier {
 
   // ========== CONSTRUCTEUR ==========
   AppDataProvider({required GlobalKey<NavigatorState> navigatorKey})
-      : _pushNotificationService =
-            PushNotificationService(navigatorKey: navigatorKey);
+    : _pushNotificationService = PushNotificationService(
+        navigatorKey: navigatorKey,
+      );
 
   // ========== GETTERS UTILISÉS DANS LE PROJET ==========
   bool get isLoading => _isLoading;
@@ -232,7 +233,8 @@ class AppDataProvider with ChangeNotifier {
       _isInitializing = false;
     } finally {
       print(
-          '🔄 [DEBUG] Finally bloc - isLoading: $_isLoading, isInitialized: $_isInitialized');
+        '🔄 [DEBUG] Finally bloc - isLoading: $_isLoading, isInitialized: $_isInitialized',
+      );
       _isLoading = false;
       _isInitializing = false;
       notifyListeners();
@@ -303,7 +305,8 @@ class AppDataProvider with ChangeNotifier {
         //print('✅ [DataProvider] Token FCM envoyé avec succès');
       } else {
         print(
-            '❌ [DataProvider] Erreur envoi token FCM: ${response.statusCode}');
+          '❌ [DataProvider] Erreur envoi token FCM: ${response.statusCode}',
+        );
       }
     } catch (e) {
       //print('❌ [DataProvider] Erreur envoi token FCM: $e');
@@ -415,7 +418,7 @@ class AppDataProvider with ChangeNotifier {
   //   }
   // }
 
-// Charger les données critiques pour l'UI
+  // Charger les données critiques pour l'UI
   Future<void> _loadCriticalData(String token) async {
     try {
       // Paralléliser les appels critiques
@@ -450,11 +453,13 @@ class AppDataProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        _banners = (jsonData['banner'] as List?)
+        _banners =
+            (jsonData['banner'] as List?)
                 ?.map((item) => Accueil.fromJson(item))
                 .toList() ??
             [];
-        _secteurs = (jsonData['SecteurActivite'] as List?)
+        _secteurs =
+            (jsonData['SecteurActivite'] as List?)
                 ?.map((item) => SecteurActivite.fromJson(item))
                 .toList() ??
             [];
@@ -525,7 +530,9 @@ class AppDataProvider with ChangeNotifier {
           print('✅ [DataProvider] Services chargés: ${_services.length}');
           // Debug: afficher les Type_Service de chaque service
           for (var service in _services) {
-            print('   📦 Service: ${service['name']} | Type: ${service['Type_Service']}');
+            print(
+              '   📦 Service: ${service['name']} | Type: ${service['Type_Service']}',
+            );
           }
           // ✅ CORRECTION: Différer notifyListeners
           Future.microtask(() => notifyListeners());
@@ -553,7 +560,8 @@ class AppDataProvider with ChangeNotifier {
 
         if (response.statusCode == 200) {
           final jsonData = json.decode(response.body);
-          _news = (jsonData['enregistrements'] as List?)
+          _news =
+              (jsonData['enregistrements'] as List?)
                   ?.map((item) => NewsItem.fromJson(item))
                   .toList() ??
               [];
@@ -606,10 +614,13 @@ class AppDataProvider with ChangeNotifier {
   void _initializeProfileControllers() {
     _profileControllers.clear();
     if (_userProfile['enregistrement'] != null) {
-      (_userProfile['enregistrement'] as Map<String, dynamic>)
-          .forEach((key, value) {
-        _profileControllers[key] =
-            TextEditingController(text: value?.toString() ?? '');
+      (_userProfile['enregistrement'] as Map<String, dynamic>).forEach((
+        key,
+        value,
+      ) {
+        _profileControllers[key] = TextEditingController(
+          text: value?.toString() ?? '',
+        );
       });
     }
   }
@@ -641,9 +652,11 @@ class AppDataProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        _eligibleCountries =
-            List<String>.from(jsonData['eligible_countries'] ?? []);
-        _lastEligibleCountriesRefresh = DateTime.now(); // ✅ OPTIMISATION: Timestamp du cache
+        _eligibleCountries = List<String>.from(
+          jsonData['eligible_countries'] ?? [],
+        );
+        _lastEligibleCountriesRefresh =
+            DateTime.now(); // ✅ OPTIMISATION: Timestamp du cache
         //print( '✅ [DataProvider] Pays éligibles chargés: ${_eligibleCountries.length}');
       } else {
         throw Exception('Erreur HTTP ${response.statusCode}');
@@ -691,8 +704,9 @@ class AppDataProvider with ChangeNotifier {
         // L'API retourne maintenant une liste unifiée dans 'transac'
         final List<dynamic> transactionsData = data['transac'] ?? [];
 
-        final transactions =
-            transactionsData.map((json) => Transaction.fromJson(json)).toList();
+        final transactions = transactionsData
+            .map((json) => Transaction.fromJson(json))
+            .toList();
 
         _transactions = transactions;
         _lastTransactionsRefresh = DateTime.now();
@@ -700,9 +714,11 @@ class AppDataProvider with ChangeNotifier {
 
         //print('✅ [DataProvider] Transactions chargées: ${transactions.length}');
         print(
-            '📱 Mobile Money: ${transactions.where((t) => t.typeTransaction == 'momo').length}');
+          '📱 Mobile Money: ${transactions.where((t) => t.typeTransaction == 'momo').length}',
+        );
         print(
-            '💳 Carte Bancaire: ${transactions.where((t) => t.typeTransaction == 'carte').length}');
+          '💳 Carte Bancaire: ${transactions.where((t) => t.typeTransaction == 'carte').length}',
+        );
       } else {
         throw Exception('Erreur HTTP ${response.statusCode}');
       }
@@ -764,10 +780,12 @@ class AppDataProvider with ChangeNotifier {
 
       //print('🔄 [DataProvider] Chargement notifications pour token: $token');
 
-      final response = await http.get(
-        Uri.parse('$baseUrl/notifications_test/$token'),
-        headers: {'Content-Type': 'application/json'},
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/notifications_test/$token'),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 10));
 
       //print('📡 [DataProvider] Réponse API: ${response.statusCode}');
       //print('🔄 [DataProvider] Body: ${response.body}');
@@ -781,20 +799,23 @@ class AppDataProvider with ChangeNotifier {
         if (jsonData is Map && jsonData.containsKey('notifications')) {
           // Structure: { "notifications": [...] }
           final notificationsData = jsonData['notifications'] as List?;
-          loadedNotifications = notificationsData
+          loadedNotifications =
+              notificationsData
                   ?.map((item) => NotificationData.fromJson(item))
                   .toList() ??
               [];
           //print('✅ [DataProvider] Structure avec clé "notifications": ${loadedNotifications.length} items');
         } else if (jsonData is List) {
           // Structure: [...]
-          loadedNotifications =
-              jsonData.map((item) => NotificationData.fromJson(item)).toList();
+          loadedNotifications = jsonData
+              .map((item) => NotificationData.fromJson(item))
+              .toList();
           //print('✅ [DataProvider] Structure tableau direct: ${loadedNotifications.length} items');
         } else if (jsonData is Map && jsonData.containsKey('data')) {
           // Structure alternative: { "data": [...] }
           final notificationsData = jsonData['data'] as List?;
-          loadedNotifications = notificationsData
+          loadedNotifications =
+              notificationsData
                   ?.map((item) => NotificationData.fromJson(item))
                   .toList() ??
               [];
@@ -870,7 +891,8 @@ class AppDataProvider with ChangeNotifier {
       if (!success) {
         // ✅ CORRIGÉ: Restaurer avec setter public
         for (var notification in _notifications) {
-          notification.statut = originalStatuses[notification.id] ??
+          notification.statut =
+              originalStatuses[notification.id] ??
               "non lu"; // ✅ Utilise le setter
         }
         notifyListeners();
@@ -903,8 +925,10 @@ class AppDataProvider with ChangeNotifier {
       final token = await _getUserToken();
       if (token == null) throw Exception('Token non trouvé');
 
-      final success =
-          await NotificationService.markAsRead(token, notificationId);
+      final success = await NotificationService.markAsRead(
+        token,
+        notificationId,
+      );
 
       if (!success) {
         // ✅ CORRIGÉ: Restaurer avec setter public
@@ -934,8 +958,9 @@ class AppDataProvider with ChangeNotifier {
       //print('🗑️ [DataProvider] Suppression: ${notification.id}');
 
       // 1. Retirer immédiatement de la liste pour l'UX
-      final originalIndex =
-          _notifications.indexWhere((n) => n.id == notification.id);
+      final originalIndex = _notifications.indexWhere(
+        (n) => n.id == notification.id,
+      );
       if (originalIndex == -1) return true;
 
       final removedNotification = _notifications.removeAt(originalIndex);
@@ -943,7 +968,9 @@ class AppDataProvider with ChangeNotifier {
 
       // 2. Appel API via NotificationService
       final success = await NotificationService.deleteNotification(
-          notification.userId, notification.id);
+        notification.userId,
+        notification.id,
+      );
 
       if (!success) {
         // Restaurer en cas d'échec
@@ -992,8 +1019,9 @@ class AppDataProvider with ChangeNotifier {
   void toggleNotificationExpansion(NotificationData notification) {
     final index = _notifications.indexWhere((n) => n.id == notification.id);
     if (index != -1) {
-      _notifications[index] = _notifications[index]
-          .copyWith(isExpanded: !_notifications[index].isExpanded);
+      _notifications[index] = _notifications[index].copyWith(
+        isExpanded: !_notifications[index].isExpanded,
+      );
       notifyListeners();
     }
   }
@@ -1010,10 +1038,7 @@ class AppDataProvider with ChangeNotifier {
 
       final response = await http.post(
         Uri.parse('$baseUrl/api/wallet/balance'),
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'application/json',
-        },
+        headers: {'Authorization': token, 'Content-Type': 'application/json'},
         body: json.encode({"pin": pin}),
       );
 
@@ -1092,10 +1117,7 @@ class AppDataProvider with ChangeNotifier {
       if (token == null) throw Exception('Token non trouvé');
 
       // Recharger toutes les données critiques (bannières, secteurs, miles)
-      await Future.wait([
-        _loadCriticalData(token),
-        refreshNotifications(),
-      ]);
+      await Future.wait([_loadCriticalData(token), refreshNotifications()]);
 
       // ⚠️ IMPORTANT: Charger SEULEMENT les données secondaires (pas les miles)
       _loadSecondaryDataInBackgroundExcludingMiles(token);
@@ -1164,11 +1186,13 @@ class AppDataProvider with ChangeNotifier {
         return;
       }
 
-      final response = await http
-          .get(Uri.parse('$baseUrl/acceuil_apk_wpay_v2_test/$userToken'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/acceuil_apk_wpay_v2_test/$userToken'),
+      );
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        _banners = (jsonData['banner'] as List?)
+        _banners =
+            (jsonData['banner'] as List?)
                 ?.map((item) => Accueil.fromJson(item))
                 .toList() ??
             [];
@@ -1242,11 +1266,13 @@ class AppDataProvider with ChangeNotifier {
   Future<void> _processResponses(List<http.Response> responses) async {
     if (responses[0].statusCode == 200) {
       final jsonData = json.decode(responses[0].body);
-      _banners = (jsonData['banner'] as List?)
+      _banners =
+          (jsonData['banner'] as List?)
               ?.map((item) => Accueil.fromJson(item))
               .toList() ??
           [];
-      _secteurs = (jsonData['SecteurActivite'] as List?)
+      _secteurs =
+          (jsonData['SecteurActivite'] as List?)
               ?.map((item) => SecteurActivite.fromJson(item))
               .toList() ??
           [];
@@ -1259,7 +1285,8 @@ class AppDataProvider with ChangeNotifier {
 
     if (responses[2].statusCode == 200) {
       final jsonData = json.decode(responses[2].body);
-      _news = (jsonData['enregistrements'] as List?)
+      _news =
+          (jsonData['enregistrements'] as List?)
               ?.map((item) => NewsItem.fromJson(item))
               .toList() ??
           [];
@@ -1267,8 +1294,9 @@ class AppDataProvider with ChangeNotifier {
 
     if (responses[3].statusCode == 200) {
       final jsonData = json.decode(responses[3].body);
-      _eligibleCountries =
-          List<String>.from(jsonData['eligible_countries'] ?? []);
+      _eligibleCountries = List<String>.from(
+        jsonData['eligible_countries'] ?? [],
+      );
       _eligibleCountriesError = null;
     }
   }
@@ -1279,12 +1307,16 @@ class AppDataProvider with ChangeNotifier {
   }
 
   Future<void> initializeForPostRegistration(
-      BuildContext context, String token) async {
+    BuildContext context,
+    String token,
+  ) async {
     await initializeApp(context);
   }
 
   Future<void> initializeAfterRegistration(
-      BuildContext context, String token) async {
+    BuildContext context,
+    String token,
+  ) async {
     if (_isInitializing || _isInitialized) {
       //print( '✅ [DataProvider] Déjà initialisé - mise à jour avec nouveau token');
       _currentUserId = token;

@@ -15,6 +15,7 @@ import 'package:wortis/pages/connexion/gestionCompte.dart';
 import 'package:wortis/pages/homepage.dart';
 import 'package:wortis/pages/homepage_dias.dart';
 import 'package:wortis/pages/notifications.dart';
+import 'package:wortis/pages/no_connection_page.dart';
 import 'package:wortis/class/dataprovider.dart';
 import 'dart:async';
 import 'package:wortis/class/class.dart';
@@ -1247,6 +1248,9 @@ class AuthService {
         await prefs.setString('user_infos', jsonEncode(data['user']));
         await SessionManager.saveSession(data["token"]);
 
+        // Sauvegarder TOUTES les informations pour l'accès hors ligne
+        await SessionManager.saveAllUserInfo(data['user']);
+
         //print('✅ [Register] Inscription réussie');
 
         // ========== SAUVEGARDER LE CODE PAYS LOCALEMENT ==========
@@ -1386,6 +1390,9 @@ class AuthService {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_infos', jsonEncode(data['user']));
         //print('💾 [Login] Informations utilisateur sauvegardées');
+
+        // Sauvegarder TOUTES les informations pour l'accès hors ligne
+        await SessionManager.saveAllUserInfo(data['user']);
 
         // ========== RÉCUPÉRER ZONE_BENEF_CODE ==========
         final zoneBenefCode =
@@ -1615,6 +1622,9 @@ class AuthService {
 
         await SessionManager.saveSession(userId);
 
+        // Sauvegarder TOUTES les informations pour l'accès hors ligne
+        await SessionManager.saveAllUserInfo(data['user']);
+
         //print('💾 [GoogleAuth] Informations utilisateur sauvegardées');
         final zoneBenefCode =
             data["zone_benef_code"] ?? 'CG'; // Fallback vers Congo
@@ -1745,6 +1755,9 @@ class AuthService {
 
         await SessionManager.saveSession(data['token']);
 
+        // Sauvegarder TOUTES les informations pour l'accès hors ligne
+        await SessionManager.saveAllUserInfo(data['user']);
+
         // ========== SAUVEGARDER LE CODE PAYS LOCALEMENT ==========
         String savedZoneBenefCode = finalCountryCode;
 
@@ -1823,6 +1836,9 @@ class AuthService {
         await prefs.setString('apple_user_id', userId);
 
         await SessionManager.saveSession(userId);
+
+        // Sauvegarder TOUTES les informations pour l'accès hors ligne
+        await SessionManager.saveAllUserInfo(data['user']);
 
         final zoneBenefCode = data["zone_benef_code"] ?? 'CG';
         await ZoneBenefManager.saveZoneBenef(zoneBenefCode);
@@ -1926,6 +1942,9 @@ class AuthService {
         await prefs.setString('apple_user_id', data['token']);
 
         await SessionManager.saveSession(data['token']);
+
+        // Sauvegarder TOUTES les informations pour l'accès hors ligne
+        await SessionManager.saveAllUserInfo(data['user']);
 
         String savedZoneBenefCode = finalCountryCode;
         await ZoneBenefManager.saveZoneBenef(savedZoneBenefCode);
@@ -2313,12 +2332,53 @@ class SessionManager {
     }
   }
 
+  /// Sauvegarde les informations utilisateur pour l'accès hors ligne (sans données sensibles)
+  static Future<void> saveAllUserInfo(Map<String, dynamic> userData) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Filtrer les données sensibles
+      final filteredData = Map<String, dynamic>.from(userData);
+      final keysToRemove = ['_id', 'check_verif', 'role', 'secure_token', 'token'];
+
+      keysToRemove.forEach((key) => filteredData.remove(key));
+
+      // Sauvegarder les données filtrées en JSON
+      await prefs.setString('offline_user_data', jsonEncode(filteredData));
+      print('✅ [SessionManager] Informations utilisateur sauvegardées pour accès hors ligne');
+      print('   Données sauvegardées: ${filteredData.keys.toList()}');
+      print('   Données filtrées supprimées: $keysToRemove');
+    } catch (e) {
+      print('❌ [SessionManager] Erreur sauvegarde infos utilisateur: $e');
+    }
+  }
+
+  /// Récupère TOUTES les informations utilisateur sauvegardées
+  static Future<Map<String, dynamic>> getAllUserInfo() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userDataJson = prefs.getString('offline_user_data');
+
+      if (userDataJson != null && userDataJson.isNotEmpty) {
+        return jsonDecode(userDataJson) as Map<String, dynamic>;
+      }
+
+      return {};
+    } catch (e) {
+      print('❌ [SessionManager] Erreur récupération infos utilisateur: $e');
+      return {};
+    }
+  }
+
   static Future<void> clearSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_tokenKey);
       await prefs.remove('flutter.$_tokenKey');
       await prefs.remove('flutter.flutter.$_tokenKey');
+      // Supprimer aussi les données offline
+      await prefs.remove('offline_user_data');
+      await prefs.remove('user_infos');
       _cachedToken = null;
       _cachedLoginStatus = null;
       _lastVerificationTime = null;
@@ -2796,108 +2856,19 @@ class ConnectivityManager {
 
     if (!context.mounted) return;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          // ✅ NOUVEAU: StatefulBuilder pour l'état local
-          builder: (context, setState) {
-            return WillPopScope(
-              onWillPop: () async => false,
-              child: AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                title: const Column(
-                  children: [
-                    Icon(
-                      Icons.wifi_off_rounded,
-                      size: 50,
-                      color: Color(0xFF006699),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'Connectez-vous à internet',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF006699),
-                      ),
-                    ),
-                  ],
-                ),
-                content: const Text(
-                  'Vérifiez votre connexion internet puis réessayez',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
-                  ),
-                ),
-                actionsAlignment: MainAxisAlignment.center,
-                actions: [
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 15),
-                    width: 200,
-                    height: 45,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF006699),
-                        foregroundColor: Colors.white,
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: _isRetrying
-                          ? null // ✅ Désactiver le bouton pendant le chargement
-                          : () => _retryConnection(dialogContext, setState),
-                      child: _isRetrying
-                          ? Row(
-                              // ✅ NOUVEAU: Indicateur de chargement
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white.withOpacity(0.8),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                const Text(
-                                  'Vérification...',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : const Text(
-                              // ✅ Texte normal
-                              'Réessayer',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
+    // Naviguer vers la page de perte de connexion
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: true,
+        barrierDismissible: false,
+        pageBuilder: (context, _, __) => const NoConnectionPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    ).then((_) {
+      _isDialogShowing = false;
+    });
   }
 }
 

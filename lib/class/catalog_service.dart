@@ -657,7 +657,7 @@ class _CatalogServiceState extends State<CatalogService>
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${item.total.toStringAsFixed(0)}',
+                    item.total.toStringAsFixed(0),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: isSmallScreen ? 15 : 17,
@@ -1399,7 +1399,7 @@ class _CatalogServiceState extends State<CatalogService>
                       children: [
                         if (product.discount > 0) ...[
                           Text(
-                            '${product.price.toStringAsFixed(0)}',
+                            product.price.toStringAsFixed(0),
                             style: TextStyle(
                               fontSize: 9,
                               color: Colors.grey[500],

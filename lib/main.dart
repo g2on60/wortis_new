@@ -338,7 +338,7 @@ class AppStartupPage extends StatefulWidget {
 
 class _AppStartupPageState extends State<AppStartupPage>
     with SingleTickerProviderStateMixin {
-  bool _isLoading = true;
+  final bool _isLoading = true;
   String _loadingMessage = 'Initialisation...';
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;

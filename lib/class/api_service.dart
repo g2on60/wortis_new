@@ -17,9 +17,9 @@ class ApiService {
   final Map<String, http.Client> _clients = {};
 
   Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
 
   // ============================================
   // RÉCUPÉRATION DES CHAMPS DE SERVICE
@@ -55,15 +55,19 @@ class ApiService {
   // ============================================
 
   Future<Map<String, dynamic>> verifyDataGet(
-      String url, Map<String, dynamic> params) async {
+    String url,
+    Map<String, dynamic> params,
+  ) async {
     try {
       if (!url.startsWith('http')) {
         url = baseUrl + url;
       }
 
       final uri = Uri.parse(url).replace(
-          queryParameters:
-              params.map((key, value) => MapEntry(key, value.toString())));
+        queryParameters: params.map(
+          (key, value) => MapEntry(key, value.toString()),
+        ),
+      );
 
       print('Vérification GET: $uri');
 
@@ -83,10 +87,13 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> verifyDataPost(
-      String url, Map<String, dynamic> data,
-      [String? operationId]) async {
-    final client =
-        operationId != null ? _createClient(operationId) : http.Client();
+    String url,
+    Map<String, dynamic> data, [
+    String? operationId,
+  ]) async {
+    final client = operationId != null
+        ? _createClient(operationId)
+        : http.Client();
 
     try {
       if (!url.startsWith('http')) {
@@ -122,15 +129,21 @@ class ApiService {
   // SOUMISSION DU FORMULAIRE (SIMPLIFIÉ)
   // ============================================
 
-  Future<bool> submitFormData(BuildContext context, String url,
-      Map<String, dynamic> data, Map<String, dynamic>? serviceData,
-      [String? operationId, bool isCard = false]) async {
+  Future<bool> submitFormData(
+    BuildContext context,
+    String url,
+    Map<String, dynamic> data,
+    Map<String, dynamic>? serviceData, [
+    String? operationId,
+    bool isCard = false,
+  ]) async {
     // Ajouter le token
     final token = await SessionManager.getToken();
     data['token'] = token;
 
-    final client =
-        operationId != null ? _createClient(operationId) : http.Client();
+    final client = operationId != null
+        ? _createClient(operationId)
+        : http.Client();
 
     try {
       // Construire l'URL complète
@@ -162,8 +175,10 @@ class ApiService {
     } catch (e) {
       print('❌ Erreur: $e');
       if (context.mounted) {
-        CustomOverlay.showError(context,
-            message: 'Erreur lors de la soumission');
+        CustomOverlay.showError(
+          context,
+          message: 'Erreur lors de la soumission',
+        );
       }
       return false;
     } finally {
@@ -240,15 +255,16 @@ class ApiService {
     // Debug détaillé
     print('📋 Champs envoyés:');
     request.fields.forEach((key, value) {
-      String display =
-          value.length > 50 ? '${value.substring(0, 50)}...' : value;
+      String display = value.length > 50
+          ? '${value.substring(0, 50)}...'
+          : value;
       print('  - $key: $display');
     });
 
     print('📎 Fichiers envoyés:');
-    request.files.forEach((file) {
+    for (var file in request.files) {
       print('  - ${file.field}: ${file.filename} (${file.length} bytes)');
-    });
+    }
 
     print('🚀 Envoi...');
     var streamedResponse = await client.send(request);
@@ -275,7 +291,8 @@ class ApiService {
       }
 
       final bytes = await fileObj.readAsBytes();
-      final mime = file.mimeType ??
+      final mime =
+          file.mimeType ??
           lookupMimeType(file.path) ??
           'application/octet-stream';
       final parts = mime.split('/');
@@ -339,8 +356,10 @@ class ApiService {
       }
 
       if (context.mounted) {
-        CustomOverlay.showSuccess(context,
-            message: 'Formulaire soumis avec succès !');
+        CustomOverlay.showSuccess(
+          context,
+          message: 'Formulaire soumis avec succès !',
+        );
       }
       return true;
     }
@@ -352,16 +371,18 @@ class ApiService {
         String errorMsg = _extractErrorMessage(data);
 
         // Utiliser les messages personnalisés si disponibles
-       if (response.statusCode >= 400 && response.statusCode < 500) {
-          errorMsg = errorMsg ?? serviceData?['error_400'] ;
+        if (response.statusCode >= 400 && response.statusCode < 500) {
+          errorMsg = errorMsg ?? serviceData?['error_400'];
         } else if (response.statusCode >= 500) {
-          errorMsg = errorMsg ?? serviceData?['error_500'] ;
+          errorMsg = errorMsg ?? serviceData?['error_500'];
         }
 
         CustomOverlay.showError(context, message: errorMsg);
       } catch (e) {
-        CustomOverlay.showError(context,
-            message: 'Erreur ${response.statusCode}: ${response.body}');
+        CustomOverlay.showError(
+          context,
+          message: 'Erreur ${response.statusCode}: ${response.body}',
+        );
       }
     }
 
@@ -370,7 +391,8 @@ class ApiService {
 
   String _extractErrorMessage(Map<String, dynamic> data) {
     // Essayer différentes clés possibles pour le message d'erreur
-    var message = data['message'] ??
+    var message =
+        data['message'] ??
         data['error'] ??
         data['Erreur'] ??
         data['erreur'] ??
@@ -378,7 +400,8 @@ class ApiService {
 
     // Si c'est un objet, creuser plus profond
     if (message is Map<String, dynamic>) {
-      message = message['message'] ??
+      message =
+          message['message'] ??
           message['error'] ??
           'Erreur lors de la soumission';
     }
@@ -399,8 +422,9 @@ class ApiService {
         Uri.parse('$baseUrl/create_notifications_test'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
-          'type':
-              status == "SUCCESSFUL" || status == '200' ? 'paiement' : 'kdo',
+          'type': status == "SUCCESSFUL" || status == '200'
+              ? 'paiement'
+              : 'kdo',
           'contenu': status == "SUCCESSFUL" || status == '200'
               ? 'Votre paiement a été effectué avec succès'
               : 'Échec de votre paiement',
@@ -408,7 +432,7 @@ class ApiService {
           'icone': 'payment',
           'title': status == "SUCCESSFUL" || status == '200'
               ? 'Paiement réussi'
-              : 'Paiement échoué'
+              : 'Paiement échoué',
         }),
       );
     } catch (e) {
@@ -420,8 +444,11 @@ class ApiService {
   // VÉRIFICATION DES TRANSACTIONS
   // ============================================
 
-  void _startTransactionCheck(BuildContext context, String reference,
-      {required bool isCard}) {
+  void _startTransactionCheck(
+    BuildContext context,
+    String reference, {
+    required bool isCard,
+  }) {
     Timer? timer;
     bool isCompleted = false;
 
@@ -451,10 +478,12 @@ class ApiService {
       }
 
       try {
-        final checkingUrl =
-            isCard ? '$baseUrl/check_transac_cb' : '$baseUrl/check_transac';
-        final requestBody =
-            isCard ? {'uniqueID': reference} : {'transac': reference};
+        final checkingUrl = isCard
+            ? '$baseUrl/check_transac_cb'
+            : '$baseUrl/check_transac';
+        final requestBody = isCard
+            ? {'uniqueID': reference}
+            : {'transac': reference};
 
         final response = await http.post(
           Uri.parse(checkingUrl),
@@ -499,10 +528,8 @@ class ApiService {
     return showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) => TransactionCheckingDialog(
-        reference: reference,
-        isCard: isCard,
-      ),
+      builder: (BuildContext context) =>
+          TransactionCheckingDialog(reference: reference, isCard: isCard),
     );
   }
 
@@ -637,8 +664,9 @@ class _TransactionCheckingDialogState extends State<TransactionCheckingDialog> {
             return Container(
               width: constraints.maxWidth,
               constraints: BoxConstraints(
-                maxHeight:
-                    isSmallScreen ? size.height * 0.8 : size.height * 0.6,
+                maxHeight: isSmallScreen
+                    ? size.height * 0.8
+                    : size.height * 0.6,
                 minHeight: 200,
               ),
               decoration: BoxDecoration(
@@ -749,8 +777,9 @@ class _TransactionCheckingDialogState extends State<TransactionCheckingDialog> {
                             backgroundColor: const Color(0xFF006699),
                             foregroundColor: Colors.white,
                             elevation: 3,
-                            shadowColor:
-                                const Color(0xFF006699).withOpacity(0.3),
+                            shadowColor: const Color(
+                              0xFF006699,
+                            ).withOpacity(0.3),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),

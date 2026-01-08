@@ -104,7 +104,7 @@ class _TestUploadPageState extends State<TestUploadPage> {
           _isLoading = false;
         });
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       setState(() {
         _status = "❌ Erreur: $e";
         _isLoading = false;
@@ -126,10 +126,7 @@ class _TestUploadPageState extends State<TestUploadPage> {
           children: [
             const Text(
               'Test d\'upload vers le backend',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
 
@@ -159,7 +156,8 @@ class _TestUploadPageState extends State<TestUploadPage> {
                     )
                   : const Icon(Icons.cloud_upload),
               label: Text(
-                  _isLoading ? 'Upload en cours...' : 'Envoyer le fichier'),
+                _isLoading ? 'Upload en cours...' : 'Envoyer le fichier',
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF006699),
                 foregroundColor: Colors.white,
@@ -182,16 +180,10 @@ class _TestUploadPageState extends State<TestUploadPage> {
                 children: [
                   const Text(
                     'Statut:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    _status,
-                    style: const TextStyle(fontSize: 14),
-                  ),
+                  Text(_status, style: const TextStyle(fontSize: 14)),
                 ],
               ),
             ),

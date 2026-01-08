@@ -2,6 +2,7 @@
 ///
 /// Ce fichier contient des fonctions utilitaires pour gérer les notifications
 /// OneSignal dans votre application.
+library;
 
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:wortis/main.dart' show forceOneSignalSubscription;

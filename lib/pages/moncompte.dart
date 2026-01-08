@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wortis/class/icon_utils.dart';
 import 'package:wortis/class/webviews.dart';
 import 'package:wortis/class/class.dart';
 import 'package:wortis/pages/connexion/gestionCompte.dart';
@@ -73,8 +74,9 @@ class _MonComptePageState extends State<MonComptePage>
       final token = await SessionManager.getToken();
       if (token != null) {
         final response = await http.get(
-            Uri.parse('$baseUrl/get_user_apk_wpay_v3_test/$token'),
-            headers: {"Content-Type": "application/json"});
+          Uri.parse('$baseUrl/get_user_apk_wpay_v3_test/$token'),
+          headers: {"Content-Type": "application/json"},
+        );
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
@@ -111,7 +113,8 @@ class _MonComptePageState extends State<MonComptePage>
         for (var field in fields) {
           if (!_controllers.containsKey(field.name)) {
             _controllers[field.name] = TextEditingController(
-                text: _userInfo?[field.name] ?? field.value ?? '');
+              text: _userInfo?[field.name] ?? field.value ?? '',
+            );
           }
         }
       });
@@ -121,8 +124,10 @@ class _MonComptePageState extends State<MonComptePage>
 
       setState(() => _isLoadingFields = false);
       if (mounted) {
-        CustomOverlay.showError(context,
-            message: 'Erreur lors du chargement des champs du profil');
+        CustomOverlay.showError(
+          context,
+          message: 'Erreur lors du chargement des champs du profil',
+        );
       }
     }
   }
@@ -137,8 +142,10 @@ class _MonComptePageState extends State<MonComptePage>
         if (field.isRequired) {
           final value = _controllers[field.name]?.text.trim() ?? '';
           if (value.isEmpty) {
-            CustomOverlay.showError(context,
-                message: 'Le champ ${field.label} est requis');
+            CustomOverlay.showError(
+              context,
+              message: 'Le champ ${field.label} est requis',
+            );
             return;
           }
         }
@@ -148,9 +155,12 @@ class _MonComptePageState extends State<MonComptePage>
           final value = _controllers[field.name]?.text.trim() ?? '';
           final regex = RegExp(field.validationRegex!);
           if (value.isNotEmpty && !regex.hasMatch(value)) {
-            CustomOverlay.showError(context,
-                message: field.validationMessage ??
-                    'Format invalide pour ${field.label}');
+            CustomOverlay.showError(
+              context,
+              message:
+                  field.validationMessage ??
+                  'Format invalide pour ${field.label}',
+            );
             return;
           }
         }
@@ -167,8 +177,10 @@ class _MonComptePageState extends State<MonComptePage>
       });
 
       if (!hasChanges) {
-        CustomOverlay.showInfo(context,
-            message: 'Aucune modification à enregistrer');
+        CustomOverlay.showInfo(
+          context,
+          message: 'Aucune modification à enregistrer',
+        );
         return;
       }
 
@@ -197,6 +209,9 @@ class _MonComptePageState extends State<MonComptePage>
         final updatedUserInfo = {...existingUserInfo, ...updatedData};
         await prefs.setString('user_infos', jsonEncode(updatedUserInfo));
 
+        // Sauvegarder aussi dans offline_user_data
+        await SessionManager.saveAllUserInfo(updatedUserInfo);
+
         // AJOUT DE LA VÉRIFICATION MOUNTED
         if (!mounted) return;
 
@@ -207,8 +222,10 @@ class _MonComptePageState extends State<MonComptePage>
 
         // VÉRIFICATION DÉJÀ PRÉSENTE - BIEN !
         if (!mounted) return;
-        CustomOverlay.showSuccess(context,
-            message: 'Profil mis à jour avec succès');
+        CustomOverlay.showSuccess(
+          context,
+          message: 'Profil mis à jour avec succès',
+        );
       } else {
         throw Exception(result['messages'] ?? 'Erreur lors de la mise à jour');
       }
@@ -238,8 +255,10 @@ class _MonComptePageState extends State<MonComptePage>
       // AJOUT DE LA VÉRIFICATION MOUNTED
       if (!mounted) return;
 
-      CustomOverlay.showError(context,
-          message: 'Erreur lors de la déconnexion');
+      CustomOverlay.showError(
+        context,
+        message: 'Erreur lors de la déconnexion',
+      );
     }
   }
 
@@ -253,10 +272,7 @@ class _MonComptePageState extends State<MonComptePage>
         ],
         body: TabBarView(
           controller: _tabController,
-          children: [
-            _buildProfileTab(),
-            _buildSettingsTab(),
-          ],
+          children: [_buildProfileTab(), _buildSettingsTab()],
         ),
       ),
     );
@@ -276,7 +292,8 @@ class _MonComptePageState extends State<MonComptePage>
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-            builder: (context) => HomePage(routeObserver: routeObserver)),
+          builder: (context) => HomePage(routeObserver: routeObserver),
+        ),
         (route) => false,
       );
     }
@@ -336,8 +353,10 @@ class _MonComptePageState extends State<MonComptePage>
                   style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 style: TextButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                     side: const BorderSide(color: Colors.white24),
@@ -439,8 +458,11 @@ class _MonComptePageState extends State<MonComptePage>
                               height: 40,
                               color: Colors.white,
                             ),
-                            const Icon(Icons.wifi,
-                                color: Colors.white70, size: 24),
+                            const Icon(
+                              Icons.wifi,
+                              color: Colors.white70,
+                              size: 24,
+                            ),
                           ],
                         ),
                         const SizedBox(height: 20),
@@ -454,7 +476,8 @@ class _MonComptePageState extends State<MonComptePage>
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
+                                      Colors.white,
+                                    ),
                                   ),
                                 )
                               : Text(
@@ -569,12 +592,16 @@ class _MonComptePageState extends State<MonComptePage>
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Icon(Icons.person,
-                                    color: Colors.white, size: 24),
+                                const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
                                 const Expanded(
                                   child: Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 16),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
                                     child: Text(
                                       'Mes coordonnées',
                                       style: TextStyle(
@@ -607,8 +634,10 @@ class _MonComptePageState extends State<MonComptePage>
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   onPressed: _saveChanges,
-                                  icon: const Icon(Icons.save,
-                                      color: Colors.white),
+                                  icon: const Icon(
+                                    Icons.save,
+                                    color: Colors.white,
+                                  ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF006699),
                                     padding: const EdgeInsets.symmetric(
@@ -666,11 +695,7 @@ class _MonComptePageState extends State<MonComptePage>
                 color: const Color(0xFF006699).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                color: const Color(0xFF006699),
-                size: 20,
-              ),
+              child: Icon(icon, color: const Color(0xFF006699), size: 20),
             ),
             const SizedBox(width: 15),
             Expanded(
@@ -688,26 +713,19 @@ class _MonComptePageState extends State<MonComptePage>
                   const SizedBox(height: 2),
                   Text(
                     description,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: Colors.grey,
-              size: 20,
-            ),
+            const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
           ],
         ),
       ),
     );
   }
 
-// Nouvelle méthode pour naviguer vers test.wortispay.cg
+  // Nouvelle méthode pour naviguer vers test.wortispay.cg
   Future<void> _navigateToMilesService() async {
     try {
       final token = await SessionManager.getToken();
@@ -719,9 +737,7 @@ class _MonComptePageState extends State<MonComptePage>
 
       // Construire l'URL vers test.wortispay.cg avec les paramètres miles
       const baseUrl = "https://faouzy.wortis.cg/miles";
-      final uri = Uri.parse(baseUrl).replace(queryParameters: {
-        'token': token,
-      });
+      final uri = Uri.parse(baseUrl).replace(queryParameters: {'token': token});
 
       final fullUrl = uri.toString();
 
@@ -730,14 +746,14 @@ class _MonComptePageState extends State<MonComptePage>
       // Ouvrir dans ServiceWebView (comme dans homepage_dias.dart)
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => ServiceWebView(url: fullUrl),
-        ),
+        MaterialPageRoute(builder: (context) => ServiceWebView(url: fullUrl)),
       );
     } catch (e) {
       print('❌ Erreur navigation miles service: $e');
-      CustomOverlay.showError(context,
-          message: 'Erreur lors de l\'ouverture du service');
+      CustomOverlay.showError(
+        context,
+        message: 'Erreur lors de l\'ouverture du service',
+      );
     }
   }
 
@@ -763,20 +779,21 @@ class _MonComptePageState extends State<MonComptePage>
         {
           'name': 'subscription_number',
           'label': 'Numéro d\'abonnement',
-          'icon': Icons.card_membership
+          'icon': Icons.card_membership,
         },
         {
           'name': 'e2c_number',
           'label': 'Numéro client E2C',
-          'icon': Icons.credit_card
+          'icon': Icons.credit_card,
         },
       ];
 
       return baseFields.map((field) {
         final name = field['name'] as String;
         if (!_controllers.containsKey(name)) {
-          _controllers[name] =
-              TextEditingController(text: _userInfo?[name] ?? '');
+          _controllers[name] = TextEditingController(
+            text: _userInfo?[name] ?? '',
+          );
         }
 
         return _buildFormField(
@@ -786,8 +803,8 @@ class _MonComptePageState extends State<MonComptePage>
           keyboardType: name == 'phone_number'
               ? TextInputType.phone
               : (name == 'e2c_number' || name == 'subscription_number')
-                  ? TextInputType.number
-                  : TextInputType.text,
+              ? TextInputType.number
+              : TextInputType.text,
         );
       }).toList();
     }
@@ -795,7 +812,8 @@ class _MonComptePageState extends State<MonComptePage>
     return _profileFields!.map((field) {
       if (!_controllers.containsKey(field.name)) {
         _controllers[field.name] = TextEditingController(
-            text: _userInfo?[field.name] ?? field.value ?? '');
+          text: _userInfo?[field.name] ?? field.value ?? '',
+        );
       }
 
       return _buildFormField(
@@ -820,7 +838,7 @@ class _MonComptePageState extends State<MonComptePage>
     // Vérifier si c'est le dernier champ
     bool isLastField =
         (_profileFields != null && name == _profileFields!.last.name) ||
-            (name == 'e2c_number');
+        (name == 'e2c_number');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -850,8 +868,8 @@ class _MonComptePageState extends State<MonComptePage>
                           // AJOUT DE LA VÉRIFICATION MOUNTED
                           if (!mounted) return;
 
-                          final RenderObject? renderObject =
-                              context.findRenderObject();
+                          final RenderObject? renderObject = context
+                              .findRenderObject();
                           if (renderObject != null) {
                             scrollController.position.ensureVisible(
                               renderObject,
@@ -983,7 +1001,8 @@ class _MonComptePageState extends State<MonComptePage>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const ForgotPasswordPage(fromUserAccount: true),
+            builder: (context) =>
+                const ForgotPasswordPage(fromUserAccount: true),
           ),
         );
         break;
@@ -1024,8 +1043,9 @@ class _MonComptePageState extends State<MonComptePage>
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: const BoxDecoration(
                     color: Color(0xFF006699),
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(20)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
                   ),
                   child: Center(
                     child: Image.asset(
@@ -1054,19 +1074,13 @@ class _MonComptePageState extends State<MonComptePage>
                       Text(
                         'Voulez-vous vraiment vous déconnecter ?',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.black87),
                       ),
                       SizedBox(height: 8),
                       Text(
                         'Vous devrez vous reconnecter pour accéder à votre compte.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -1187,10 +1201,7 @@ class _MonComptePageState extends State<MonComptePage>
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(
-            answer,
-            style: const TextStyle(color: Colors.black54),
-          ),
+          child: Text(answer, style: const TextStyle(color: Colors.black54)),
         ),
       ],
     );
@@ -1257,10 +1268,7 @@ class _MonComptePageState extends State<MonComptePage>
               color: const Color(0xFF006699),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Image.asset(
-              'assets/wortisapp.png',
-              color: Colors.white,
-            ),
+            child: Image.asset('assets/wortisapp.png', color: Colors.white),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -1274,10 +1282,7 @@ class _MonComptePageState extends State<MonComptePage>
           const SizedBox(height: 8),
           const Text(
             'Version 1.5.1',
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey, fontSize: 14),
           ),
         ],
       ),
@@ -1376,7 +1381,10 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: _tabBar,
@@ -1448,31 +1456,14 @@ class ProfileField {
   });
 
   factory ProfileField.fromJson(Map<String, dynamic> json) {
-    IconData getIconFromString(String iconName) {
-      switch (iconName) {
-        case 'person':
-          return Icons.person;
-        case 'phone':
-          return Icons.phone;
-        case 'email':
-          return Icons.email;
-        case 'location':
-          return Icons.location_on;
-        case 'card':
-          return Icons.credit_card;
-        case 'subscription':
-          return Icons.card_membership;
-        default:
-          return Icons.edit;
-      }
-    }
+    IconUtils.getIconData(json['icon']);
 
     return ProfileField(
       id: json['id'],
       name: json['name'],
       label: json['label'],
       value: json['value'],
-      icon: getIconFromString(json['icon']),
+      icon: IconUtils.getIconData(json['icon']),
       isEditable: json['isEditable'] ?? true,
       placeholder: json['placeholder'],
       validationRegex: json['validationRegex'],

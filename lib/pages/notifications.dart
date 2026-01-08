@@ -21,7 +21,6 @@ import 'dart:typed_data';
 import 'package:wortis/pages/homepage_dias.dart';
 
 // NOUVEAU IMPORT FIREBASE
-import 'firebase_messaging_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
