@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wortis/class/CustomPageTransition.dart';
 import 'package:wortis/class/form_service.dart';
 import 'package:wortis/class/catalog_service.dart';
+import 'package:wortis/pages/reservation_service.dart';
 import 'package:wortis/class/icon_utils.dart';
 import 'package:wortis/class/webviews.dart';
 import 'package:wortis/pages/allservice.dart';
@@ -1118,6 +1119,15 @@ class _HomePageDiasState extends State<HomePageDias>
                       context: context,
                       authenticatedRoute: ServicePageTransitionDias(
                         page: CatalogService(serviceName: label),
+                      ),
+                      unauthenticatedRoute: const AuthentificationPage(),
+                    );
+                  } else if (typeService == "reservationservice") {
+                    print('➡️ [HomePageDias] Navigation vers ReservationService');
+                    await SessionManager.checkSessionAndNavigate(
+                      context: context,
+                      authenticatedRoute: ServicePageTransitionDias(
+                        page: ReservationService(serviceName: label),
                       ),
                       unauthenticatedRoute: const AuthentificationPage(),
                     );
@@ -2668,6 +2678,16 @@ class _HomePageDiasState extends State<HomePageDias>
                 context: context,
                 authenticatedRoute: ServicePageTransitionDias(
                   page: CatalogService(serviceName: service['name']),
+                ),
+                unauthenticatedRoute: const AuthentificationPage(),
+              );
+            }
+          } else if (service['Type_Service'] == "ReservationService") {
+            if (mounted && context.mounted) {
+              await SessionManager.checkSessionAndNavigate(
+                context: context,
+                authenticatedRoute: ServicePageTransitionDias(
+                  page: ReservationService(serviceName: service['name']),
                 ),
                 unauthenticatedRoute: const AuthentificationPage(),
               );

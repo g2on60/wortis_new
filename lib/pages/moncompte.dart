@@ -1,10 +1,13 @@
 // ignore_for_file: unused_field, empty_catches, deprecated_member_use, use_build_context_synchronously
 
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:barcode_widget/barcode_widget.dart';
 import 'package:wortis/class/icon_utils.dart';
 import 'package:wortis/class/webviews.dart';
 import 'package:wortis/class/class.dart';
@@ -37,6 +40,12 @@ class _MonComptePageState extends State<MonComptePage>
   Widget? _currentSettingView;
   List<ProfileField>? _profileFields;
 
+  // Variables pour QR code / code-barres
+  bool _showCode = false;
+  bool _isQRCode = true; // true = QR code, false = code-barres
+  String _codeData = '';
+  bool _isLoadingCode = false;
+
   @override
   void initState() {
     super.initState();
@@ -48,7 +57,8 @@ class _MonComptePageState extends State<MonComptePage>
     _tabController = TabController(length: 2, vsync: this);
     _loadUserInfoFromStorage();
     _loadMiles();
-    _loadProfileFields();
+    _loadProfileFieldsSafely(); // Version non-bloquante
+    _loadCodeData();
   }
 
   Future<void> _loadUserInfoFromStorage() async {
@@ -76,6 +86,12 @@ class _MonComptePageState extends State<MonComptePage>
         final response = await http.get(
           Uri.parse('$baseUrl/get_user_apk_wpay_v3_test/$token'),
           headers: {"Content-Type": "application/json"},
+        ).timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            print('⏱️ Timeout lors du chargement des miles');
+            throw TimeoutException('Timeout lors du chargement des miles');
+          },
         );
 
         if (response.statusCode == 200) {
@@ -91,10 +107,32 @@ class _MonComptePageState extends State<MonComptePage>
         }
       }
     } catch (e) {
+      print('❌ Erreur chargement miles: $e');
       // AJOUT DE LA VÉRIFICATION MOUNTED
       if (!mounted) return;
 
       setState(() => _isCardLoading = false);
+    }
+  }
+
+  /// Version non-bloquante de _loadProfileFields avec timeout
+  Future<void> _loadProfileFieldsSafely() async {
+    try {
+      // Timeout de 3 secondes pour ne pas bloquer l'UI
+      await _loadProfileFields().timeout(
+        const Duration(seconds: 3),
+        onTimeout: () {
+          print('⏱️ Timeout lors du chargement des champs profil');
+          if (mounted) {
+            setState(() => _isLoadingFields = false);
+          }
+        },
+      );
+    } catch (e) {
+      print('❌ Erreur lors du chargement des champs profil: $e');
+      if (mounted) {
+        setState(() => _isLoadingFields = false);
+      }
     }
   }
 
@@ -122,12 +160,98 @@ class _MonComptePageState extends State<MonComptePage>
       // AJOUT DE LA VÉRIFICATION MOUNTED
       if (!mounted) return;
 
+      print('⚠️ Erreur chargement champs profil: $e');
+
       setState(() => _isLoadingFields = false);
-      if (mounted) {
+
+      // Ne pas afficher d'erreur si c'est un problème de réseau
+      // L'utilisateur pourra quand même voir ses données locales
+      if (mounted && !e.toString().contains('SocketException')) {
         CustomOverlay.showError(
           context,
           message: 'Erreur lors du chargement des champs du profil',
         );
+      }
+    }
+  }
+
+  /// Charge les données pour le QR code / code-barres
+  Future<void> _loadCodeData() async {
+    setState(() {
+      _isLoadingCode = true;
+    });
+
+    try {
+      // Récupérer les données utilisateur sauvegardées
+      var userData = await SessionManager.getAllUserInfo();
+
+      print('🔍 [Code] Données récupérées du storage:');
+      print('   offline_user_data: ${userData.keys.toList()}');
+
+      // Fallback vers user_infos si offline_user_data est vide
+      if (userData.isEmpty) {
+        print('⚠️ [Code] offline_user_data vide, essai avec user_infos');
+        final prefs = await SharedPreferences.getInstance();
+        final userInfosJson = prefs.getString('user_infos');
+
+        if (userInfosJson != null && userInfosJson.isNotEmpty) {
+          userData = jsonDecode(userInfosJson) as Map<String, dynamic>;
+          print('✅ [Code] Données récupérées depuis user_infos');
+
+          // Sauvegarder dans offline_user_data pour la prochaine fois
+          await SessionManager.saveAllUserInfo(userData);
+        }
+      }
+
+      if (userData.isNotEmpty) {
+        // Extraire les informations essentielles
+        final nom = userData['nom']?.toString() ??
+                    userData['name']?.toString() ??
+                    userData['lastname']?.toString() ?? '';
+        final prenom = userData['prenom']?.toString() ??
+                       userData['firstname']?.toString() ??
+                       userData['first_name']?.toString() ?? '';
+        final email = userData['email']?.toString() ??
+                     userData['mail']?.toString() ?? '';
+        final telephone = userData['phone_number']?.toString() ??
+                         userData['phone']?.toString() ??
+                         userData['telephone']?.toString() ??
+                         userData['user_id']?.toString() ?? '';
+
+        // Créer les données du code
+        final userInfo = {
+          'nom': nom,
+          'prenom': prenom,
+          'telephone': telephone,
+          'email': email,
+          'app': 'Wortis',
+        };
+
+        _codeData = jsonEncode(userInfo);
+        print('✅ [Code] Données générées avec succès');
+      } else {
+        print('⚠️ [Code] Pas de données disponibles');
+        // Fallback
+        final fallbackInfo = {
+          'message': 'Données utilisateur',
+          'app': 'Wortis',
+          'generated_at': DateTime.now().toIso8601String(),
+        };
+        _codeData = jsonEncode(fallbackInfo);
+      }
+    } catch (e) {
+      print('❌ [Code] Erreur chargement: $e');
+      // Fallback
+      final fallbackInfo = {
+        'message': 'Erreur chargement données',
+        'app': 'Wortis',
+      };
+      _codeData = jsonEncode(fallbackInfo);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingCode = false;
+        });
       }
     }
   }
@@ -561,6 +685,223 @@ class _MonComptePageState extends State<MonComptePage>
     );
   }
 
+  /// Widget pour afficher/masquer le QR code ou code-barres
+  Widget _buildCodeDisplayWidget() {
+    return TweenAnimationBuilder<double>(
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+      tween: Tween<double>(begin: 0, end: 1),
+      builder: (context, value, child) {
+        return Transform.scale(
+          scale: 0.9 + (0.1 * value),
+          child: Opacity(
+            opacity: value,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF006699).withOpacity(0.15 * value),
+                    blurRadius: 15,
+                    offset: Offset(0, 5 * value),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Bouton pour afficher/masquer le code
+                  if (!_showCode)
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _showCode = true;
+                          });
+                        },
+                        icon: const Icon(Icons.qr_code_2, size: 24),
+                        label: const Text(
+                          'Afficher mon code',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF006699),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 14,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 2,
+                        ),
+                      ),
+                    ),
+
+                  // Zone d'affichage du code
+                  if (_showCode)
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          // Header avec switch QR/Barcode
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _isQRCode ? 'QR Code' : 'Code-barres',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF006699),
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.qr_code_2,
+                                    color: _isQRCode
+                                        ? const Color(0xFF006699)
+                                        : Colors.grey,
+                                    size: 20,
+                                  ),
+                                  Switch(
+                                    value: !_isQRCode,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _isQRCode = !value;
+                                      });
+                                    },
+                                    activeColor: const Color(0xFF006699),
+                                  ),
+                                  Icon(
+                                    Icons.view_stream,
+                                    color: !_isQRCode
+                                        ? const Color(0xFF006699)
+                                        : Colors.grey,
+                                    size: 20,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Affichage du code
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFF006699).withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: _isLoadingCode
+                                ? const SizedBox(
+                                    width: 200,
+                                    height: 200,
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                        color: Color(0xFF006699),
+                                      ),
+                                    ),
+                                  )
+                                : _isQRCode
+                                    ? _buildQRCode()
+                                    : _buildBarcode(),
+                          ),
+
+                          const SizedBox(height: 15),
+
+                          // Description
+                          Text(
+                            _isQRCode
+                                ? 'Scannez ce QR code pour accéder à mes informations'
+                                : 'Scannez ce code-barres pour accéder à mes informations',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+
+                          const SizedBox(height: 15),
+
+                          // Bouton Masquer
+                          TextButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _showCode = false;
+                              });
+                            },
+                            icon: const Icon(Icons.close, size: 18),
+                            label: const Text(
+                              'Masquer',
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF006699),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Widget QR Code
+  Widget _buildQRCode() {
+    return QrImageView(
+      data: _codeData.isNotEmpty
+          ? _codeData
+          : jsonEncode({'error': 'Données non disponibles'}),
+      version: QrVersions.auto,
+      size: 200,
+      backgroundColor: Colors.white,
+      errorCorrectionLevel: QrErrorCorrectLevel.H,
+      padding: const EdgeInsets.all(10),
+    );
+  }
+
+  /// Widget Code-barres
+  Widget _buildBarcode() {
+    // Pour le code-barres, on utilise le téléphone comme donnée
+    String barcodeData = _userInfo?['phone_number']?.toString() ??
+                         _userInfo?['telephone']?.toString() ??
+                         '0000000000';
+
+    // S'assurer que la donnée a au moins 8 chiffres pour le code-barres
+    if (barcodeData.length < 8) {
+      barcodeData = barcodeData.padRight(8, '0');
+    }
+
+    return BarcodeWidget(
+      barcode: Barcode.code128(),
+      data: barcodeData,
+      width: 250,
+      height: 100,
+      drawText: true,
+      style: const TextStyle(
+        fontSize: 14,
+        color: Colors.black87,
+      ),
+    );
+  }
+
   Widget _buildProfileTab() {
     return SingleChildScrollView(
       controller: scrollController,
@@ -576,6 +917,8 @@ class _MonComptePageState extends State<MonComptePage>
               children: [
                 _buildMilesWidget(),
                 const SizedBox(height: 5),
+                _buildCodeDisplayWidget(),
+                const SizedBox(height: 10),
                 if (_userInfo != null)
                   Card(
                     elevation: 0,
@@ -1483,6 +1826,12 @@ class ProfileFieldsService {
       final response = await http.get(
         Uri.parse('$baseUrl/get_profile_fields_v2_test'),
         headers: {"Content-Type": "application/json"},
+      ).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          print('⏱️ Timeout lors du chargement des champs profil API');
+          throw TimeoutException('Timeout lors du chargement des champs profil');
+        },
       );
 
       if (response.statusCode == 200) {

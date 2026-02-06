@@ -1,0 +1,119 @@
+{
+  "_id": {
+    "$oid": "65f8a2b3c4d5e6f7a8b9c0d1" 
+  },
+  "name": "Coiffure Hommes",
+  "Type_Service": "ReservationService",
+  "SecteurActivite": "Bookings",
+  "title": "Coiffure Homme à Domicile",
+  "icon": "content_cut",
+  "banner": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
+  "description": "Réservez votre séance de coiffure à domicile avec nos professionnels qualifiés. Choisissez votre date, votre créneau horaire et le type de prestation souhaité.",
+  "texts": {
+    "step_1_title": "Étape 1 : Choisissez votre prestation",
+    "step_2_title": "Étape 2 : Sélectionnez la date",
+    "step_3_title": "Étape 3 : Finalisez votre réservation",
+    "step_1_label": "Prestation",
+    "step_2_label": "Date",
+    "step_3_label": "Détails",
+    "button_next": "Suivant",
+    "button_previous": "Précédent",
+    "button_confirm": "Confirmer",
+    "error_no_prestation": "Veuillez sélectionner une prestation",
+    "error_no_timeslot": "Veuillez sélectionner un créneau horaire"
+  },
+  "availability": {
+    "working_days": [1, 2, 3, 4, 5, 6],
+    "excluded_days": [7],
+    "time_slots": [
+      "08:00-09:00",
+      "09:00-10:00",
+      "10:00-11:00",
+      "11:00-12:00",
+      "14:00-15:00",
+      "15:00-16:00",
+      "16:00-17:00",
+      "17:00-18:00"
+    ],
+    "custom_schedules": {
+      "6": {
+        "time_slots": [
+          "09:00-10:00",
+          "10:00-11:00",
+          "11:00-12:00",
+          "14:00-15:00"
+        ]
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "type_prestation",
+      "type": "selecteur",
+      "label": "Type de prestation",
+      "required": true,
+      "options": [
+        {
+          "value": "coupe_1_personne",
+          "label": "Coupe Homme - 1 Personne",
+          "description": "Coupe moderne ou classique selon vos préférences",
+          "price": 5000,
+          "image": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&q=80"
+        },
+        {
+          "value": "coupe_2_personnes",
+          "label": "Coupe Homme - 2 Personnes",
+          "description": "Tarif réduit pour 2 personnes",
+          "price": 8500,
+          "image": "https://images.unsplash.com/photo-1622286346507-d31c0c96eb0e?w=400&q=80"
+        },
+        {
+          "value": "coupe_barbe",
+          "label": "Coupe + Barbe",
+          "description": "Coupe complète avec taille de barbe professionnelle",
+          "price": 7500,
+          "image": "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=400&q=80"
+        },
+        {
+          "value": "forfait_complet",
+          "label": "Forfait Complet",
+          "description": "Coupe + Barbe + Soin cheveux et visage",
+          "price": 10000,
+          "image": "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&q=80"
+        }
+      ]
+    },
+    {
+      "name": "email",
+      "type": "text",
+      "label": "Email",
+      "required": true,
+      "tag": "email"
+    },
+    {
+      "name": "notes",
+      "type": "text",
+      "label": "Instructions particulières (optionnel)",
+      "required": false
+    }
+  ],
+  "link_momo": "https://api.live.wortis.cg/api/bookings/create-reservation",
+  "body": {
+    "date": "date",
+    "timeSlot": "timeSlot",
+    "prestation": "type_prestation",
+    "email": "email",
+    "notes": "notes"
+  },
+  "api_timeslots": null,
+  "comment_payer": "Pour confirmer votre réservation:\n\n1. Sélectionnez votre prestation parmi nos offres\n2. Choisissez la date et l'heure qui vous conviennent\n3. Remplissez vos coordonnées\n4. Validez votre réservation\n\nUn coiffeur professionnel se rendra à votre domicile à l'heure convenue.",
+  "button_service": "Confirmer la réservation",
+  "created_at": {
+    "$date": "2024-02-05T10:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2024-02-05T10:00:00.000Z"
+  },
+  "eligible_countries": "CG",
+  "active": true
+}

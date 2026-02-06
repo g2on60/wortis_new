@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Back Office - Réservations</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Page de Connexion -->
+    <div id="loginPage" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>🎯 Back Office</h1>
+                <p>Gestion des Réservations</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required placeholder="votre@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    Se connecter
+                </button>
+            </form>
+            <div id="loginError" class="error-message" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Dashboard Principal -->
+    <div id="dashboardPage" class="dashboard-container" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>📋 Menu</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-link active" data-page="reservations">
+                    <span class="icon">📅</span>
+                    Réservations
+                </a>
+                <a href="#" class="nav-link" data-page="prestations">
+                    <span class="icon">✂️</span>
+                    Prestations
+                </a>
+                <a href="#" class="nav-link" data-page="stats">
+                    <span class="icon">📊</span>
+                    Statistiques
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <span id="userEmail"></span>
+                </div>
+                <button class="btn btn-secondary btn-block" onclick="logout()">
+                    Déconnexion
+                </button>
+            </div>
+        </aside>
+
+        <!-- Contenu Principal -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <h1 id="pageTitle">Réservations</h1>
+                <div class="header-actions">
+                    <select id="serviceSelector" class="service-select">
+                        <option value="">Tous les services</option>
+                    </select>
+                </div>
+            </header>
+
+            <!-- Page Réservations -->
+            <div id="reservationsPage" class="page-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalReservations">0</div>
+                        <div class="stat-label">Total Réservations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="confirmedReservations">0</div>
+                        <div class="stat-label">Confirmées</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pendingReservations">0</div>
+                        <div class="stat-label">En attente</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalRevenue">0 FCFA</div>
+                        <div class="stat-label">Revenu Total</div>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <input type="date" id="filterDate" placeholder="Filtrer par date">
+                    <select id="filterStatus">
+                        <option value="">Tous les statuts</option>
+                        <option value="confirmed">Confirmé</option>
+                        <option value="pending_payment">En attente</option>
+                        <option value="cancelled">Annulé</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadReservations()">Filtrer</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Heure</th>
+                                <th>Client</th>
+                                <th>Téléphone</th>
+                                <th>Prestation</th>
+                                <th>Montant</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reservationsTable">
+                            <!-- Les réservations seront chargées ici -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Page Prestations -->
+            <div id="prestationsPage" class="page-content" style="display: none;">
+                <div class="page-header">
+                    <h2>Gestion des Prestations</h2>
+                    <button class="btn btn-primary" onclick="openPrestationModal()">
+                        + Ajouter une prestation
+                    </button>
+                </div>
+
+                <div class="prestations-grid" id="prestationsGrid">
+                    <!-- Les prestations seront chargées ici -->
+                </div>
+            </div>
+
+            <!-- Page Statistiques -->
+            <div id="statsPage" class="page-content" style="display: none;">
+                <h2>Statistiques détaillées</h2>
+                <div class="stats-details" id="statsDetails">
+                    <!-- Stats détaillées -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Détails Réservation -->
+    <div id="reservationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Détails de la réservation</h2>
+                <span class="close" onclick="closeModal('reservationModal')">&times;</span>
+            </div>
+            <div class="modal-body" id="reservationDetails">
+                <!-- Détails de la réservation -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('reservationModal')">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Prestation -->
+    <div id="prestationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="prestationModalTitle">Ajouter une prestation</h2>
+                <span class="close" onclick="closeModal('prestationModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="prestationForm">
+                    <input type="hidden" id="prestationId">
+                    <div class="form-group">
+                        <label for="prestationName">Nom de la prestation</label>
+                        <input type="text" id="prestationName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="prestationDescription">Description</label>
+                        <textarea id="prestationDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="prestationPrice">Prix (FCFA)</label>
+                            <input type="number" id="prestationPrice" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="prestationCategory">Catégorie</label>
+                            <input type="text" id="prestationCategory">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="prestationImage">URL Image</label>
+                        <input type="url" id="prestationImage">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('prestationModal')">Annuler</button>
+                <button class="btn btn-primary" onclick="savePrestation()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

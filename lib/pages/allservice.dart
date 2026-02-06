@@ -6,6 +6,7 @@ import 'package:wortis/class/class.dart';
 import 'package:wortis/class/dataprovider.dart';
 import 'package:wortis/class/form_service.dart';
 import 'package:wortis/class/catalog_service.dart';
+import 'package:wortis/pages/reservation_service.dart';
 import 'package:wortis/class/icon_utils.dart';
 import 'package:wortis/class/webviews.dart';
 import 'package:wortis/pages/connexion/gestionCompte.dart';
@@ -251,6 +252,17 @@ class _AllServicesPageState extends State<AllServicesPage> {
             context: context,
             authenticatedRoute: ServicePageTransition(
               page: CatalogService(serviceName: serviceName),
+            ),
+            unauthenticatedRoute: const AuthentificationPage(),
+          );
+        }
+      } else if (service['Type_Service'] == "ReservationService") {
+        print('➡️ [AllServices] Navigation vers ReservationService');
+        if (mounted && context.mounted) {
+          await SessionManager.checkSessionAndNavigate(
+            context: context,
+            authenticatedRoute: ServicePageTransition(
+              page: ReservationService(serviceName: serviceName),
             ),
             unauthenticatedRoute: const AuthentificationPage(),
           );

@@ -15,6 +15,7 @@ import 'package:wortis/class/webviews.dart';
 import 'package:wortis/pages/allservice.dart';
 import 'package:wortis/class/form_service.dart';
 import 'package:wortis/class/catalog_service.dart';
+import 'package:wortis/pages/reservation_service.dart';
 import 'package:wortis/pages/connexion/gestionCompte.dart' hide AppConfig;
 import 'package:wortis/pages/homepage_dias.dart';
 import 'package:wortis/pages/moncompte.dart';
@@ -80,7 +81,7 @@ class _HomePageState extends State<HomePage>
     'Mise à jour serveur',
     'Sauvegarde locale',
     'Rechargement données',
-    'Finalisation'
+    'Finalisation',
   ];
 
   // Variables pour la gestion des pays (si pas déjà présentes)
@@ -159,8 +160,10 @@ class _HomePageState extends State<HomePage>
     // 6. Rafraîchissement des notifications
     Future.microtask(() {
       if (mounted) {
-        final appDataProvider =
-            Provider.of<AppDataProvider>(context, listen: false);
+        final appDataProvider = Provider.of<AppDataProvider>(
+          context,
+          listen: false,
+        );
         appDataProvider.refreshNotifications();
         appDataProvider.startPeriodicNotificationRefresh();
       }
@@ -179,8 +182,10 @@ class _HomePageState extends State<HomePage>
 
     Future.microtask(() {
       if (mounted) {
-        final appDataProvider =
-            Provider.of<AppDataProvider>(context, listen: false);
+        final appDataProvider = Provider.of<AppDataProvider>(
+          context,
+          listen: false,
+        );
         appDataProvider.refreshNotifications();
       }
     });
@@ -191,8 +196,10 @@ class _HomePageState extends State<HomePage>
     if (state == AppLifecycleState.resumed) {
       Future.microtask(() {
         if (mounted) {
-          final appDataProvider =
-              Provider.of<AppDataProvider>(context, listen: false);
+          final appDataProvider = Provider.of<AppDataProvider>(
+            context,
+            listen: false,
+          );
           appDataProvider.refreshNotifications();
         }
       });
@@ -210,8 +217,10 @@ class _HomePageState extends State<HomePage>
       _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
         if (!mounted) return;
 
-        final appDataProvider =
-            Provider.of<AppDataProvider>(context, listen: false);
+        final appDataProvider = Provider.of<AppDataProvider>(
+          context,
+          listen: false,
+        );
         if (_currentPage < appDataProvider.banners.length - 1) {
           _currentPage++;
         } else {
@@ -233,8 +242,10 @@ class _HomePageState extends State<HomePage>
   void _preloadBannerImages() {
     if (!mounted) return;
 
-    final appDataProvider =
-        Provider.of<AppDataProvider>(context, listen: false);
+    final appDataProvider = Provider.of<AppDataProvider>(
+      context,
+      listen: false,
+    );
 
     // Préchargez toutes les images de bannière
     for (var banner in appDataProvider.banners) {
@@ -245,8 +256,9 @@ class _HomePageState extends State<HomePage>
       final imageUrl = banner.imageUrl;
       if (!_preloadedImageUrls.contains(imageUrl)) {
         // Précacher l'image
-        precacheImage(NetworkImage(Uri.encodeFull(imageUrl)), context)
-            .then((_) {
+        precacheImage(NetworkImage(Uri.encodeFull(imageUrl)), context).then((
+          _,
+        ) {
           if (mounted) {
             setState(() {
               _preloadedImageUrls.add(imageUrl);
@@ -260,8 +272,10 @@ class _HomePageState extends State<HomePage>
   void _selectRandomServices() {
     if (!mounted) return;
 
-    final appDataProvider =
-        Provider.of<AppDataProvider>(context, listen: false);
+    final appDataProvider = Provider.of<AppDataProvider>(
+      context,
+      listen: false,
+    );
 
     // Vérifier que les services sont disponibles
     if (appDataProvider.services.isEmpty) {
@@ -385,11 +399,12 @@ class _HomePageState extends State<HomePage>
           (country) =>
               country.code.toUpperCase() == zoneBenefCode.toUpperCase(),
           orElse: () => const Country(
-              name: 'Congo',
-              code: 'CG',
-              dialCode: '+242',
-              flag: '🇨🇬',
-              region: 'Afrique Centrale'),
+            name: 'Congo',
+            code: 'CG',
+            dialCode: '+242',
+            flag: '🇨🇬',
+            region: 'Afrique Centrale',
+          ),
         );
 
         // Mise à jour SANS setState pour éviter le flash visuel
@@ -397,7 +412,8 @@ class _HomePageState extends State<HomePage>
         _selectedFlag = matchingCountry.flag;
 
         print(
-            '✅ Pays restauré silencieusement: ${matchingCountry.name} ${matchingCountry.flag}');
+          '✅ Pays restauré silencieusement: ${matchingCountry.name} ${matchingCountry.flag}',
+        );
       } else {
         // Fallback discret vers Congo (logique par défaut pour HomePage)
         _selectedCountry = "Congo";
@@ -459,87 +475,74 @@ class _HomePageState extends State<HomePage>
   }
 
   void _configureAnimations() {
-    _bannerSlideAnimation = Tween<Offset>(
-      begin: const Offset(-1.0, 0.0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _bannerAnimationController,
-      curve: Curves.easeOutCubic,
-    ));
+    _bannerSlideAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _bannerAnimationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
-    _bannerFadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _bannerAnimationController,
-      curve: Curves.easeIn,
-    ));
+    _bannerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _bannerAnimationController, curve: Curves.easeIn),
+    );
 
-    _sectorsScaleAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _sectorsAnimationController,
-      curve: Curves.elasticOut,
-    ));
+    _sectorsScaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _sectorsAnimationController,
+        curve: Curves.elasticOut,
+      ),
+    );
 
-    _balanceSlideAnimation = Tween<double>(
-      begin: -100.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _balanceAnimationController,
-      curve: Curves.easeOutBack,
-    ));
+    _balanceSlideAnimation = Tween<double>(begin: -100.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _balanceAnimationController,
+        curve: Curves.easeOutBack,
+      ),
+    );
 
-    _servicesFadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _servicesAnimationController,
-      curve: Curves.easeIn,
-    ));
+    _servicesFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _servicesAnimationController,
+        curve: Curves.easeIn,
+      ),
+    );
 
-    _bottomNavSlideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 1.0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _bottomNavAnimationController,
-      curve: Curves.easeOutExpo,
-    ));
+    _bottomNavSlideAnimation =
+        Tween<Offset>(begin: const Offset(0.0, 1.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _bottomNavAnimationController,
+            curve: Curves.easeOutExpo,
+          ),
+        );
 
-    _searchScaleAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _searchAnimationController,
-      curve: Curves.easeOutBack,
-    ));
+    _searchScaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _searchAnimationController,
+        curve: Curves.easeOutBack,
+      ),
+    );
 
     _fullscreenServicesScale = CurvedAnimation(
       parent: _fullscreenServicesController,
       curve: Curves.easeInOut,
     );
 
-    _fullscreenServicesOpacity = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fullscreenServicesController,
-      curve: Curves.easeIn,
-    ));
+    _fullscreenServicesOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _fullscreenServicesController,
+        curve: Curves.easeIn,
+      ),
+    );
 
     _searchResultsScale = CurvedAnimation(
       parent: _searchResultsController,
       curve: Curves.easeInOut,
     );
 
-    _searchResultsOpacity = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _searchResultsController,
-      curve: Curves.easeIn,
-    ));
+    _searchResultsOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _searchResultsController, curve: Curves.easeIn),
+    );
   }
 
   Future<void> _startAnimationSequence() async {
@@ -618,10 +621,7 @@ class _HomePageState extends State<HomePage>
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF006699),
-                    Color(0xFF004466),
-                  ],
+                  colors: [Color(0xFF006699), Color(0xFF004466)],
                 ),
               ),
               child: Stack(
@@ -661,8 +661,9 @@ class _HomePageState extends State<HomePage>
                         ],
                       ),
                       shape: const RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(bottom: Radius.circular(40)),
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(40),
+                        ),
                       ),
                     ),
                     body: const SizedBox.shrink(),
@@ -770,8 +771,11 @@ class _HomePageState extends State<HomePage>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline,
-                      color: Colors.white, size: 48),
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.white,
+                    size: 48,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Erreur: ${appDataProvider.error}',
@@ -871,9 +875,7 @@ class _HomePageState extends State<HomePage>
 
                   // ✅ NOUVEAU: OVERLAY DE CHANGEMENT DE PAYS
                   if (_showCountryChangeOverlay)
-                    Positioned.fill(
-                      child: _buildCountryChangeOverlay(),
-                    ),
+                    Positioned.fill(child: _buildCountryChangeOverlay()),
                 ],
               ),
             ),
@@ -891,9 +893,7 @@ class _HomePageState extends State<HomePage>
     if (appDataProvider.isLoading) {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -908,8 +908,10 @@ class _HomePageState extends State<HomePage>
               children: [
                 TextButton.icon(
                   onPressed: () => _onServicesPressed(context),
-                  label: const Text('Voir',
-                      style: TextStyle(color: Color(0xFF006699))),
+                  label: const Text(
+                    'Voir',
+                    style: TextStyle(color: Color(0xFF006699)),
+                  ),
                   icon: const Icon(Icons.add, color: Color(0xFF006699)),
                 ),
               ],
@@ -963,8 +965,10 @@ class _HomePageState extends State<HomePage>
             children: [
               TextButton.icon(
                 onPressed: () => _onServicesPressed(context),
-                label: const Text('Voir',
-                    style: TextStyle(color: Color(0xFF006699))),
+                label: const Text(
+                  'Voir',
+                  style: TextStyle(color: Color(0xFF006699)),
+                ),
                 icon: const Icon(Icons.add, color: Color(0xFF006699)),
               ),
             ],
@@ -1010,7 +1014,8 @@ class _HomePageState extends State<HomePage>
                           children: _selectedServices.map((service) {
                             return Padding(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: isSmallScreen ? 4 : 8),
+                                horizontal: isSmallScreen ? 4 : 8,
+                              ),
                               child: SizedBox(
                                 width: itemWidth,
                                 child: _buildServiceCard(
@@ -1058,30 +1063,37 @@ class _HomePageState extends State<HomePage>
                 print('👆 [HomePage] CLIC DÉTECTÉ sur: $label');
                 if (!mounted) return;
 
-                final service = Provider.of<AppDataProvider>(context,
-                        listen: false)
-                    .services
-                    .firstWhere((s) => s['name'] == label,
-                        orElse: () => {'Type_Service': '', 'link_view': ''});
+                final service =
+                    Provider.of<AppDataProvider>(
+                      context,
+                      listen: false,
+                    ).services.firstWhere(
+                      (s) => s['name'] == label,
+                      orElse: () => {'Type_Service': '', 'link_view': ''},
+                    );
 
                 if (!mounted) return;
 
                 // Debug: afficher les données du service
                 print('🔍 [HomePage] Service: $label');
-                print('🔍 [HomePage] Type_Service: "${service['Type_Service']}"');
+                print(
+                  '🔍 [HomePage] Type_Service: "${service['Type_Service']}"',
+                );
                 print('🔍 [HomePage] Service complet: $service');
 
                 try {
-                  final String typeService = (service['Type_Service'] ?? '').toString().trim().toLowerCase();
+                  final String typeService = (service['Type_Service'] ?? '')
+                      .toString()
+                      .trim()
+                      .toLowerCase();
 
                   if (typeService == "webview") {
                     print('➡️ [HomePage] Navigation vers WebView');
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ServiceWebView(
-                          url: service['link_view'] ?? '',
-                        ),
+                        builder: (context) =>
+                            ServiceWebView(url: service['link_view'] ?? ''),
                       ),
                     );
                   } else if (typeService == "catalog") {
@@ -1093,8 +1105,19 @@ class _HomePageState extends State<HomePage>
                       ),
                       unauthenticatedRoute: const AuthentificationPage(),
                     );
+                  } else if (typeService == "reservationservice") {
+                    print('➡️ [HomePage] Navigation vers ReservationService');
+                    await SessionManager.checkSessionAndNavigate(
+                      context: context,
+                      authenticatedRoute: ServicePageTransition(
+                        page: ReservationService(serviceName: label),
+                      ),
+                      unauthenticatedRoute: const AuthentificationPage(),
+                    );
                   } else {
-                    print('➡️ [HomePage] Navigation vers FormService (default)');
+                    print(
+                      '➡️ [HomePage] Navigation vers FormService (default)',
+                    );
                     await SessionManager.checkSessionAndNavigate(
                       context: context,
                       authenticatedRoute: ServicePageTransition(
@@ -1155,7 +1178,8 @@ class _HomePageState extends State<HomePage>
                                   opacity: 0.7,
                                   child: Icon(
                                     IconUtils.getIconData(iconName),
-                                    size: iconSize *
+                                    size:
+                                        iconSize *
                                         value, // Effet subtil de pulsation
                                     color: iconColor.withOpacity(value),
                                   ),
@@ -1208,8 +1232,9 @@ class _HomePageState extends State<HomePage>
       return; // Déjà préchargée ou image locale
     }
 
-    precacheImage(NetworkImage(Uri.encodeFull(banner.imageUrl)), context)
-        .then((_) {
+    precacheImage(NetworkImage(Uri.encodeFull(banner.imageUrl)), context).then((
+      _,
+    ) {
       if (mounted) {
         setState(() {
           _preloadedImageUrls.add(banner.imageUrl);
@@ -1243,8 +1268,9 @@ class _HomePageState extends State<HomePage>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircularProgressIndicator(
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(Color(0xFF006699)),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(0xFF006699),
+                      ),
                     ),
                     SizedBox(height: 12),
                     Text(
@@ -1333,16 +1359,19 @@ class _HomePageState extends State<HomePage>
                   // Précharger les images de la page suivante et précédente
                   if (page < appDataProvider.banners.length - 1) {
                     _preloadSpecificBannerImage(
-                        appDataProvider.banners[page + 1]);
+                      appDataProvider.banners[page + 1],
+                    );
                   }
                   if (page > 0) {
                     _preloadSpecificBannerImage(
-                        appDataProvider.banners[page - 1]);
+                      appDataProvider.banners[page - 1],
+                    );
                   }
                 },
                 itemBuilder: (context, index) {
                   final banner = appDataProvider.banners[index];
-                  final isPreloaded = banner.hasLocalImage ||
+                  final isPreloaded =
+                      banner.hasLocalImage ||
                       _preloadedImageUrls.contains(banner.imageUrl);
 
                   return ClipRRect(
@@ -1361,11 +1390,15 @@ class _HomePageState extends State<HomePage>
                                 width: double.infinity,
                                 errorBuilder: (context, error, stackTrace) {
                                   return _buildImageWithLoaderIfNeeded(
-                                      banner.imageUrl, isPreloaded);
+                                    banner.imageUrl,
+                                    isPreloaded,
+                                  );
                                 },
                               )
                             : _buildImageWithLoaderIfNeeded(
-                                banner.imageUrl, isPreloaded),
+                                banner.imageUrl,
+                                isPreloaded,
+                              ),
 
                         // Indicateurs de pages en bas
                         Positioned(
@@ -1377,8 +1410,9 @@ class _HomePageState extends State<HomePage>
                             children: List.generate(
                               appDataProvider.banners.length,
                               (i) => Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 3),
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 3,
+                                ),
                                 width: i == index ? 16 : 8,
                                 height: 8,
                                 decoration: BoxDecoration(
@@ -1424,9 +1458,7 @@ class _HomePageState extends State<HomePage>
           children: [
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                color: Colors.black.withOpacity(0.2),
-              ),
+              child: Container(color: Colors.black.withOpacity(0.2)),
             ),
             Container(
               padding: const EdgeInsets.all(16.0),
@@ -1491,8 +1523,9 @@ class _HomePageState extends State<HomePage>
         final padding = isSmallScreen ? 12.0 : 16.0;
         final fontSize = isSmallScreen ? 18.0 : (isMediumScreen ? 20.0 : 24.0);
         final iconSize = isSmallScreen ? 20.0 : 24.0;
-        final gridSpacing =
-            isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
+        final gridSpacing = isSmallScreen
+            ? 8.0
+            : (isMediumScreen ? 12.0 : 16.0);
         final topPadding = isSmallScreen ? 12.0 : 16.0;
 
         // Calculer le nombre de colonnes en fonction de la largeur
@@ -1519,9 +1552,7 @@ class _HomePageState extends State<HomePage>
                     sigmaX: isSmallScreen ? 3 : 5,
                     sigmaY: isSmallScreen ? 3 : 5,
                   ),
-                  child: Container(
-                    color: Colors.black.withOpacity(0.2),
-                  ),
+                  child: Container(color: Colors.black.withOpacity(0.2)),
                 ),
                 // Contenu
                 Container(
@@ -1599,11 +1630,11 @@ class _HomePageState extends State<HomePage>
                             padding: EdgeInsets.only(top: topPadding),
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: crossAxisCount,
-                              crossAxisSpacing: gridSpacing,
-                              mainAxisSpacing: gridSpacing,
-                              childAspectRatio: isSmallScreen ? 0.75 : 0.85,
-                            ),
+                                  crossAxisCount: crossAxisCount,
+                                  crossAxisSpacing: gridSpacing,
+                                  mainAxisSpacing: gridSpacing,
+                                  childAspectRatio: isSmallScreen ? 0.75 : 0.85,
+                                ),
                             itemCount: _filteredServices.length,
                             itemBuilder: (context, index) {
                               final service = _filteredServices[index];
@@ -1627,7 +1658,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-// Widget auxiliaire pour les éléments de la grille
+  // Widget auxiliaire pour les éléments de la grille
   Widget _buildResponsiveServiceGridItem(
     Map<String, dynamic> service,
     bool isSmallScreen,
@@ -1660,9 +1691,8 @@ class _HomePageState extends State<HomePage>
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ServiceWebView(
-                  url: service['link_view'] ?? '',
-                ),
+                builder: (context) =>
+                    ServiceWebView(url: service['link_view'] ?? ''),
               ),
             );
           } else if (service['Type_Service'] == "Catalog") {
@@ -1670,6 +1700,14 @@ class _HomePageState extends State<HomePage>
               context: context,
               authenticatedRoute: ServicePageTransition(
                 page: CatalogService(serviceName: service['name']),
+              ),
+              unauthenticatedRoute: const AuthentificationPage(),
+            );
+          } else if (service['Type_Service'] == "ReservationService") {
+            await SessionManager.checkSessionAndNavigate(
+              context: context,
+              authenticatedRoute: ServicePageTransition(
+                page: ReservationService(serviceName: service['name']),
               ),
               unauthenticatedRoute: const AuthentificationPage(),
             );
@@ -1741,12 +1779,29 @@ class _HomePageState extends State<HomePage>
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavBarItem(
-                  0, Icons.list, "Services", const AllServicesPage()),
+                0,
+                Icons.list,
+                "Services",
+                const AllServicesPage(),
+              ),
               _buildNavBarItem(
-                  1, Icons.article, "Actualités", const NewsPage()),
-              _buildNavBarItem(2, Icons.history, "Historique",
-                  const TransactionHistoryPage(sourcePageType: 'homepage')),
-              _buildNavBarItem(3, Icons.person, "Compte", const MonComptePage())
+                1,
+                Icons.article,
+                "Actualités",
+                const NewsPage(),
+              ),
+              _buildNavBarItem(
+                2,
+                Icons.history,
+                "Historique",
+                const TransactionHistoryPage(sourcePageType: 'homepage'),
+              ),
+              _buildNavBarItem(
+                3,
+                Icons.person,
+                "Compte",
+                const MonComptePage(),
+              ),
             ],
           ),
         ),
@@ -1802,8 +1857,12 @@ class _HomePageState extends State<HomePage>
   }
 
   // ignore: unused_element
-  Widget _buildNavItem(int index, IconData icon, Widget page,
-      {required bool requiresAuth}) {
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    Widget page, {
+    required bool requiresAuth,
+  }) {
     return GestureDetector(
       onTap: () async {
         setState(() {
@@ -1828,13 +1887,7 @@ class _HomePageState extends State<HomePage>
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: const Color(0xFF006699),
-            size: 24,
-          ),
-        ],
+        children: [Icon(icon, color: const Color(0xFF006699), size: 24)],
       ),
     );
   }
@@ -1939,9 +1992,8 @@ class _HomePageState extends State<HomePage>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ServiceWebView(
-                            url: service['link_view'] ?? '',
-                          ),
+                          builder: (context) =>
+                              ServiceWebView(url: service['link_view'] ?? ''),
                         ),
                       );
                     } else if (service['Type_Service'] == "Catalog") {
@@ -1949,6 +2001,17 @@ class _HomePageState extends State<HomePage>
                         context: context,
                         authenticatedRoute: ServicePageTransition(
                           page: CatalogService(serviceName: service['name']),
+                        ),
+                        unauthenticatedRoute: const AuthentificationPage(),
+                      );
+                    } else if (service['Type_Service'] ==
+                        "ReservationService") {
+                      await SessionManager.checkSessionAndNavigate(
+                        context: context,
+                        authenticatedRoute: ServicePageTransition(
+                          page: ReservationService(
+                            serviceName: service['name'],
+                          ),
                         ),
                         unauthenticatedRoute: const AuthentificationPage(),
                       );
@@ -2039,31 +2102,36 @@ class _HomePageState extends State<HomePage>
                 ),
               ],
             ),
-            child: LayoutBuilder(builder: (context, constraints) {
-              double screenWidth = MediaQuery.of(context).size.width;
-              int crossAxisCount = 4;
-              double spacing = screenWidth > 600 ? 16 : 8;
-              double padding = screenWidth > 600 ? 16 : 8;
-              double iconSize = screenWidth > 600 ? 30 : 24;
-              double fontSize = screenWidth > 600 ? 12 : 10;
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                double screenWidth = MediaQuery.of(context).size.width;
+                int crossAxisCount = 4;
+                double spacing = screenWidth > 600 ? 16 : 8;
+                double padding = screenWidth > 600 ? 16 : 8;
+                double iconSize = screenWidth > 600 ? 30 : 24;
+                double fontSize = screenWidth > 600 ? 12 : 10;
 
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: EdgeInsets.all(padding),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  childAspectRatio: 0.85,
-                  crossAxisSpacing: spacing,
-                  mainAxisSpacing: spacing,
-                ),
-                itemCount: appDataProvider.secteurs.length,
-                itemBuilder: (context, index) {
-                  return _buildSectorItem(
-                      appDataProvider.secteurs[index], iconSize, fontSize);
-                },
-              );
-            }),
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.all(padding),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    childAspectRatio: 0.85,
+                    crossAxisSpacing: spacing,
+                    mainAxisSpacing: spacing,
+                  ),
+                  itemCount: appDataProvider.secteurs.length,
+                  itemBuilder: (context, index) {
+                    return _buildSectorItem(
+                      appDataProvider.secteurs[index],
+                      iconSize,
+                      fontSize,
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -2071,11 +2139,15 @@ class _HomePageState extends State<HomePage>
   }
 
   void _showSectorModal(BuildContext context, String name, String icon) {
-    final appDataProvider =
-        Provider.of<AppDataProvider>(context, listen: false);
+    final appDataProvider = Provider.of<AppDataProvider>(
+      context,
+      listen: false,
+    );
     final sectorServices = appDataProvider.services
-        .where((service) =>
-            (service as Map<String, dynamic>)['SecteurActivite'] == name)
+        .where(
+          (service) =>
+              (service as Map<String, dynamic>)['SecteurActivite'] == name,
+        )
         .map((service) => service as Map<String, dynamic>)
         .toList();
 
@@ -2103,8 +2175,9 @@ class _HomePageState extends State<HomePage>
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(30)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
@@ -2173,11 +2246,11 @@ class _HomePageState extends State<HomePage>
                         padding: const EdgeInsets.all(16),
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          childAspectRatio: 0.85,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
+                              crossAxisCount: 3,
+                              childAspectRatio: 0.85,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
                         itemCount: sectorServices.length,
                         itemBuilder: (context, index) {
                           return _buildServiceGridItem(sectorServices[index]);
@@ -2208,9 +2281,8 @@ class _HomePageState extends State<HomePage>
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ServiceWebView(
-                        url: service['link_view'] ?? '',
-                      ),
+                      builder: (context) =>
+                          ServiceWebView(url: service['link_view'] ?? ''),
                     ),
                   );
                 }
@@ -2220,6 +2292,16 @@ class _HomePageState extends State<HomePage>
                     context: context,
                     authenticatedRoute: ServicePageTransition(
                       page: CatalogService(serviceName: service['name']),
+                    ),
+                    unauthenticatedRoute: const AuthentificationPage(),
+                  );
+                }
+              } else if (service['Type_Service'] == "ReservationService") {
+                if (mounted && context.mounted) {
+                  await SessionManager.checkSessionAndNavigate(
+                    context: context,
+                    authenticatedRoute: ServicePageTransition(
+                      page: ReservationService(serviceName: service['name']),
                     ),
                     unauthenticatedRoute: const AuthentificationPage(),
                   );
@@ -2294,8 +2376,9 @@ class _HomePageState extends State<HomePage>
                                 child: Icon(
                                   IconUtils.getIconData(service['icon']),
                                   size: 28 * value, // Effet subtil de pulsation
-                                  color: const Color(0xFF006699)
-                                      .withOpacity(value),
+                                  color: const Color(
+                                    0xFF006699,
+                                  ).withOpacity(value),
                                 ),
                               );
                             },
@@ -2346,57 +2429,61 @@ class _HomePageState extends State<HomePage>
 
   Widget _buildSearchField(AppDataProvider appDataProvider) {
     return TextField(
-        controller: _searchController,
-        style: const TextStyle(color: Colors.black),
-        decoration: InputDecoration(
-          hintText: 'Rechercher un service...',
-          hintStyle: const TextStyle(color: Colors.grey),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
-          ),
-          prefixIcon: const Icon(Icons.search, color: Color(0xFF006699)),
-          // Condition pour afficher le suffixIcon
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear, color: Color(0xFF006699)),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() {
-                      _filteredServices.clear();
-                    });
-                  },
-                )
-              : null,
+      controller: _searchController,
+      style: const TextStyle(color: Colors.black),
+      decoration: InputDecoration(
+        hintText: 'Rechercher un service...',
+        hintStyle: const TextStyle(color: Colors.grey),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
         ),
-        onChanged: (value) {
-          setState(() {
-            if (value.isEmpty) {
-              _filteredServices.clear();
-              _searchResultsController.reverse();
+        prefixIcon: const Icon(Icons.search, color: Color(0xFF006699)),
+        // Condition pour afficher le suffixIcon
+        suffixIcon: _searchController.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.clear, color: Color(0xFF006699)),
+                onPressed: () {
+                  _searchController.clear();
+                  setState(() {
+                    _filteredServices.clear();
+                  });
+                },
+              )
+            : null,
+      ),
+      onChanged: (value) {
+        setState(() {
+          if (value.isEmpty) {
+            _filteredServices.clear();
+            _searchResultsController.reverse();
+          } else {
+            if (value.length == 1) {
+              _filteredServices = appDataProvider.services
+                  .map((service) => service as Map<String, dynamic>)
+                  .where((service) => service['status'] ?? true)
+                  .toList();
+              _searchResultsController.forward();
             } else {
-              if (value.length == 1) {
-                _filteredServices = appDataProvider.services
-                    .map((service) => service as Map<String, dynamic>)
-                    .where((service) => service['status'] ?? true)
-                    .toList();
-                _searchResultsController.forward();
-              } else {
-                _filteredServices = appDataProvider.services
-                    .map((service) => service as Map<String, dynamic>)
-                    .where((service) {
-                  final serviceName = service['name'].toString().toLowerCase();
-                  final isActive = service['status'] ?? true;
-                  return serviceName.contains(value.toLowerCase()) && isActive;
-                }).toList();
-              }
+              _filteredServices = appDataProvider.services
+                  .map((service) => service as Map<String, dynamic>)
+                  .where((service) {
+                    final serviceName = service['name']
+                        .toString()
+                        .toLowerCase();
+                    final isActive = service['status'] ?? true;
+                    return serviceName.contains(value.toLowerCase()) &&
+                        isActive;
+                  })
+                  .toList();
             }
-          });
+          }
         });
+      },
+    );
   }
 
   PreferredSizeWidget _buildAppBar(AppDataProvider appDataProvider) {
@@ -2460,7 +2547,8 @@ class _HomePageState extends State<HomePage>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const NotificationPage()),
+                        builder: (context) => const NotificationPage(),
+                      ),
                     );
                   },
                 ),
@@ -2543,9 +2631,7 @@ class _HomePageState extends State<HomePage>
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 4),
         margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -2582,17 +2668,17 @@ class _HomePageState extends State<HomePage>
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 3),
         margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
   Future<void> _showCountrySwitcherModal() async {
     // Récupérer les pays disponibles depuis le DataProvider
-    final appDataProvider =
-        Provider.of<AppDataProvider>(context, listen: false);
+    final appDataProvider = Provider.of<AppDataProvider>(
+      context,
+      listen: false,
+    );
 
     _buildAvailableCountriesList(appDataProvider);
     await _prioritizeStoredCountryInList();
@@ -2728,15 +2814,15 @@ class _HomePageState extends State<HomePage>
               color: displayAsSelected
                   ? Colors.white.withOpacity(0.2)
                   : (isDisabled
-                      ? Colors.white.withOpacity(0.05) // Style désactivé
-                      : Colors.transparent),
+                        ? Colors.white.withOpacity(0.05) // Style désactivé
+                        : Colors.transparent),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: displayAsSelected
                     ? Colors.white.withOpacity(0.5)
                     : (isDisabled
-                        ? Colors.white.withOpacity(0.2) // Bordure désactivée
-                        : Colors.white.withOpacity(0.1)),
+                          ? Colors.white.withOpacity(0.2) // Bordure désactivée
+                          : Colors.white.withOpacity(0.1)),
                 width: 1,
               ),
             ),
@@ -2761,8 +2847,9 @@ class _HomePageState extends State<HomePage>
                             name,
                             style: TextStyle(
                               color: isDisabled
-                                  ? Colors.white
-                                      .withOpacity(0.5) // Texte désactivé
+                                  ? Colors.white.withOpacity(
+                                      0.5,
+                                    ) // Texte désactivé
                                   : Colors.white,
                               fontSize: 16,
                               fontWeight: displayAsSelected
@@ -2775,7 +2862,9 @@ class _HomePageState extends State<HomePage>
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(8),
@@ -2793,7 +2882,9 @@ class _HomePageState extends State<HomePage>
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(8),
@@ -2824,11 +2915,7 @@ class _HomePageState extends State<HomePage>
                   ),
                 ),
                 if (displayAsSelected)
-                  const Icon(
-                    Icons.check_circle,
-                    color: Colors.white,
-                    size: 20,
-                  )
+                  const Icon(Icons.check_circle, color: Colors.white, size: 20)
                 else if (isDisabled)
                   Icon(
                     Icons.location_on,
@@ -2854,8 +2941,9 @@ class _HomePageState extends State<HomePage>
 
     try {
       // Trouver l'index du Congo dans la liste
-      final congoIndex = _availableCountries
-          .indexWhere((country) => country["code"]?.toUpperCase() == 'CG');
+      final congoIndex = _availableCountries.indexWhere(
+        (country) => country["code"]?.toUpperCase() == 'CG',
+      );
 
       if (congoIndex != -1 && congoIndex != 0) {
         // Extraire le Congo et le mettre en première position
@@ -2903,8 +2991,9 @@ class _HomePageState extends State<HomePage>
                 ),
                 child: const Center(
                   child: CircularProgressIndicator(
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(Color(0xFF006699)),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFF006699),
+                    ),
                     strokeWidth: 3,
                   ),
                 ),
@@ -2928,10 +3017,7 @@ class _HomePageState extends State<HomePage>
               // Description
               Text(
                 'Mise à jour vers ${_newSelectedCountry ?? "nouveau pays"}...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
 
@@ -2954,22 +3040,25 @@ class _HomePageState extends State<HomePage>
                             color: isCompleted
                                 ? Colors.green
                                 : (isActive
-                                    ? const Color(0xFF006699)
-                                    : Colors.grey[300]),
+                                      ? const Color(0xFF006699)
+                                      : Colors.grey[300]),
                             shape: BoxShape.circle,
                           ),
                           child: isCompleted
-                              ? const Icon(Icons.check,
-                                  color: Colors.white, size: 12)
+                              ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 12,
+                                )
                               : (isActive
-                                  ? Container(
-                                      margin: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    )
-                                  : null),
+                                    ? Container(
+                                        margin: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      )
+                                    : null),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -3021,19 +3110,23 @@ class _HomePageState extends State<HomePage>
     // Sur HomePage, le Congo est toujours le pays "actuel", donc on vérifie aussi le nom
     if (countryCode.toUpperCase() == 'CG' || newCountry == _selectedCountry) {
       print(
-          '🇨🇬 [HomePage] $newCountry déjà sélectionné ou Congo choisi - Aucune action nécessaire');
+        '🇨🇬 [HomePage] $newCountry déjà sélectionné ou Congo choisi - Aucune action nécessaire',
+      );
 
       // Message de confirmation plus contextuel
       final isAlreadyCongo = countryCode.toUpperCase() == 'CG';
-      final message =
-          isAlreadyCongo ? 'Vous êtes déjà au Congo' : 'Pays déjà sélectionné';
+      final message = isAlreadyCongo
+          ? 'Vous êtes déjà au Congo'
+          : 'Pays déjà sélectionné';
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              Text(selectedCountryData["flag"] ?? '🌍',
-                  style: const TextStyle(fontSize: 20)),
+              Text(
+                selectedCountryData["flag"] ?? '🌍',
+                style: const TextStyle(fontSize: 20),
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -3067,7 +3160,8 @@ class _HomePageState extends State<HomePage>
 
     // ✅ Pour les autres pays, continuer le processus normal
     print(
-        '🚀 [HomePage] Démarrage du changement vers: $newCountry ($countryCode)');
+      '🚀 [HomePage] Démarrage du changement vers: $newCountry ($countryCode)',
+    );
 
     // Démarrer l'overlay de progression
     setState(() {
@@ -3119,9 +3213,8 @@ class _HomePageState extends State<HomePage>
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => HomePageDias(
-              routeObserver: widget.routeObserver,
-            ),
+            builder: (context) =>
+                HomePageDias(routeObserver: widget.routeObserver),
           ),
           (route) => false,
         );
@@ -3154,7 +3247,9 @@ class _HomePageState extends State<HomePage>
   }
 
   Future<void> _updateUserZoneViaAPI(
-      String newCountry, String countryCode) async {
+    String newCountry,
+    String countryCode,
+  ) async {
     try {
       final token = await SessionManager.getToken();
       if (token == null) throw Exception('Token manquant');
@@ -3179,7 +3274,8 @@ class _HomePageState extends State<HomePage>
           .timeout(const Duration(seconds: 15));
 
       print(
-          '📡 [HomePage] Réponse API mise à jour zone: ${response.statusCode}');
+        '📡 [HomePage] Réponse API mise à jour zone: ${response.statusCode}',
+      );
       //print('📄 Body: ${response.body}');
 
       if (response.statusCode == 200) {
@@ -3193,7 +3289,8 @@ class _HomePageState extends State<HomePage>
           }
         } else {
           throw Exception(
-              data['message'] ?? 'Échec de la mise à jour côté serveur');
+            data['message'] ?? 'Échec de la mise à jour côté serveur',
+          );
         }
       } else {
         throw Exception('Erreur HTTP: ${response.statusCode}');
@@ -3226,7 +3323,7 @@ class _HomePageState extends State<HomePage>
   bool _isReloadingData = false; // ✅ Nouvelle variable
   Timer? _debugTimer;
 
-// ========== SOLUTION 2: MODIFIER LA MÉTHODE _reloadPageDataForNewCountry ==========
+  // ========== SOLUTION 2: MODIFIER LA MÉTHODE _reloadPageDataForNewCountry ==========
   Future<void> _reloadPageDataForNewCountry(String newCountry) async {
     try {
       //print('🔄 [HomePage] Rechargement des données pour: $newCountry');
@@ -3236,23 +3333,26 @@ class _HomePageState extends State<HomePage>
         _isReloadingData = true;
       });
 
-      final appDataProvider =
-          Provider.of<AppDataProvider>(context, listen: false);
+      final appDataProvider = Provider.of<AppDataProvider>(
+        context,
+        listen: false,
+      );
 
       // ✅ UTILISER refreshAll AU LIEU DE initializeApp pour éviter la modal
       await appDataProvider.refreshAll().timeout(
         const Duration(seconds: 10),
         onTimeout: () {
           print(
-              '⚠️ [HomePage] Timeout DataProvider - continuation avec données partielles');
+            '⚠️ [HomePage] Timeout DataProvider - continuation avec données partielles',
+          );
         },
       );
 
       // Recharger les miles
       await appDataProvider.refreshMiles().timeout(
-            const Duration(seconds: 3),
-            onTimeout: () => print('⚠️ [HomePage] Timeout miles'),
-          );
+        const Duration(seconds: 3),
+        onTimeout: () => print('⚠️ [HomePage] Timeout miles'),
+      );
 
       // Mettre à jour l'UI
       if (mounted) {
@@ -3277,8 +3377,10 @@ class _HomePageState extends State<HomePage>
 
       // En cas d'erreur, au moins essayer le minimum
       try {
-        final appDataProvider =
-            Provider.of<AppDataProvider>(context, listen: false);
+        final appDataProvider = Provider.of<AppDataProvider>(
+          context,
+          listen: false,
+        );
         await appDataProvider.refreshAll();
         if (mounted) setState(() {});
       } catch (fallbackError) {
@@ -3301,7 +3403,12 @@ class _HomePageState extends State<HomePage>
       final matchingCountry = countries.firstWhere(
         (country) => country.code.toUpperCase() == countryCode.toUpperCase(),
         orElse: () => const Country(
-            name: '', code: '', dialCode: '', flag: '', region: ''),
+          name: '',
+          code: '',
+          dialCode: '',
+          flag: '',
+          region: '',
+        ),
       );
 
       if (matchingCountry.name.isNotEmpty) {
@@ -3313,7 +3420,8 @@ class _HomePageState extends State<HomePage>
         });
 
         print(
-            '✅ Pays trouvé: ${matchingCountry.name} (${matchingCountry.code}) ${matchingCountry.flag}');
+          '✅ Pays trouvé: ${matchingCountry.name} (${matchingCountry.code}) ${matchingCountry.flag}',
+        );
       } else {
         //print('⚠️ Pays non trouvé pour le code: $countryCode');
       }
@@ -3324,17 +3432,23 @@ class _HomePageState extends State<HomePage>
       // Seulement si aucune restauration n'a eu lieu, utiliser le Congo par défaut
       final congoCountry = _availableCountries.firstWhere(
         (country) => country["code"]?.toUpperCase() == 'CG',
-        orElse: () =>
-            {"name": "Congo", "flag": "🇨🇬", "dialCode": "+242", "code": "CG"},
+        orElse: () => {
+          "name": "Congo",
+          "flag": "🇨🇬",
+          "dialCode": "+242",
+          "code": "CG",
+        },
       );
 
       _selectedCountry = congoCountry["name"];
       _selectedFlag = congoCountry["flag"];
       print(
-          '🇨🇬 [HomePage] Congo défini par défaut (pas de restauration): ${congoCountry["name"]} ${congoCountry["flag"]}');
+        '🇨🇬 [HomePage] Congo défini par défaut (pas de restauration): ${congoCountry["name"]} ${congoCountry["flag"]}',
+      );
     } else if (_hasRestoredCountry) {
       print(
-          '🔒 [HomePage] Pays déjà restauré, conservation des valeurs: $_selectedCountry $_selectedFlag');
+        '🔒 [HomePage] Pays déjà restauré, conservation des valeurs: $_selectedCountry $_selectedFlag',
+      );
     }
 
     //print('🌍 Pays disponibles: ${_availableCountries.length}');
@@ -3355,8 +3469,10 @@ class _HomePageState extends State<HomePage>
       //print('🔍 [HomePage] Code pays stocké: $storedCountryCode');
 
       // 2. Trouver le pays correspondant dans la liste
-      final storedCountryIndex = _availableCountries.indexWhere((country) =>
-          country["code"]?.toUpperCase() == storedCountryCode.toUpperCase());
+      final storedCountryIndex = _availableCountries.indexWhere(
+        (country) =>
+            country["code"]?.toUpperCase() == storedCountryCode.toUpperCase(),
+      );
 
       if (storedCountryIndex != -1) {
         // 3. Extraire le pays trouvé
@@ -3379,7 +3495,8 @@ class _HomePageState extends State<HomePage>
         _availableCountries = reorganizedList;
 
         print(
-            '✅ [HomePage] ${storedCountry["name"]} ${storedCountry["flag"]} mis en premier');
+          '✅ [HomePage] ${storedCountry["name"]} ${storedCountry["flag"]} mis en premier',
+        );
       } else {
         //print('⚠️ [HomePage] Pays stocké non trouvé dans la liste éligible');
       }
@@ -3428,10 +3545,7 @@ class _HomePageState extends State<HomePage>
                     borderRadius: BorderRadius.circular(8), // Carré arrondi
                   ),
                   child: Center(
-                    child: Text(
-                      flag,
-                      style: const TextStyle(fontSize: 24),
-                    ),
+                    child: Text(flag, style: const TextStyle(fontSize: 24)),
                   ),
                 ),
 
@@ -3444,16 +3558,19 @@ class _HomePageState extends State<HomePage>
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
                     ),
                   ),
                 ),
 
                 // Indicatif téléphonique
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Colors.white.withOpacity(0.3)
@@ -3510,30 +3627,30 @@ class _HomePageState extends State<HomePage>
             reverseTransitionDuration: const Duration(milliseconds: 600),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
-              var slideAnimation = Tween<Offset>(
-                begin: const Offset(1.0, 0.0),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              ));
+                  var slideAnimation =
+                      Tween<Offset>(
+                        begin: const Offset(1.0, 0.0),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        ),
+                      );
 
-              var fadeAnimation = Tween<double>(
-                begin: 0.0,
-                end: 1.0,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeIn,
-              ));
+                  var fadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
+                      .animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeIn,
+                        ),
+                      );
 
-              return SlideTransition(
-                position: slideAnimation,
-                child: FadeTransition(
-                  opacity: fadeAnimation,
-                  child: child,
-                ),
-              );
-            },
+                  return SlideTransition(
+                    position: slideAnimation,
+                    child: FadeTransition(opacity: fadeAnimation, child: child),
+                  );
+                },
           ),
         );
       }
@@ -3564,10 +3681,7 @@ class _HomePageState extends State<HomePage>
             Expanded(
               child: Text(
                 name,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ),
             Icon(
@@ -3594,8 +3708,9 @@ class _HomePageState extends State<HomePage>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color:
-              isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+          color: isSelected
+              ? Colors.white.withOpacity(0.2)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
@@ -3615,10 +3730,7 @@ class _HomePageState extends State<HomePage>
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: Text(
-                  flag,
-                  style: const TextStyle(fontSize: 24),
-                ),
+                child: Text(flag, style: const TextStyle(fontSize: 24)),
               ),
             ),
 
@@ -3636,15 +3748,18 @@ class _HomePageState extends State<HomePage>
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                         ),
                       ),
                       if (code != 'DIASPORA') ...[
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(8),
@@ -3719,9 +3834,7 @@ class _HomePageState extends State<HomePage>
               TextButton(
                 child: const Text(
                   'OK',
-                  style: TextStyle(
-                    color: Color(0xFF006699),
-                  ),
+                  style: TextStyle(color: Color(0xFF006699)),
                 ),
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -3755,9 +3868,8 @@ class _HomePageState extends State<HomePage>
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ServiceWebView(
-                    url: service['link_view'] ?? '',
-                  ),
+                  builder: (context) =>
+                      ServiceWebView(url: service['link_view'] ?? ''),
                 ),
               );
             } else if (service['Type_Service'] == "Catalog") {
@@ -3765,6 +3877,14 @@ class _HomePageState extends State<HomePage>
                 context: context,
                 authenticatedRoute: ServicePageTransition(
                   page: CatalogService(serviceName: serviceName),
+                ),
+                unauthenticatedRoute: const AuthentificationPage(),
+              );
+            } else if (service['Type_Service'] == "ReservationService") {
+              await SessionManager.checkSessionAndNavigate(
+                context: context,
+                authenticatedRoute: ServicePageTransition(
+                  page: ReservationService(serviceName: serviceName),
                 ),
                 unauthenticatedRoute: const AuthentificationPage(),
               );
@@ -3782,9 +3902,7 @@ class _HomePageState extends State<HomePage>
       },
       child: Card(
         elevation: 4.0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -3798,8 +3916,10 @@ class _HomePageState extends State<HomePage>
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: Text(
                 serviceName,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -3812,7 +3932,10 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _buildSectorItem(
-      SecteurActivite secteur, double iconSize, double fontSize) {
+    SecteurActivite secteur,
+    double iconSize,
+    double fontSize,
+  ) {
     return GestureDetector(
       onTap: () => _showSectorModal(context, secteur.name, secteur.icon),
       child: Container(
@@ -3841,10 +3964,7 @@ class _HomePageState extends State<HomePage>
             Text(
               secteur.name,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w500),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -3885,10 +4005,7 @@ class _HomePageState extends State<HomePage>
                   children: [
                     const Text(
                       'Mes Mile',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                     IconButton(
                       icon: Icon(
@@ -3916,35 +4033,36 @@ class _HomePageState extends State<HomePage>
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           ),
                         )
                       : provider.milesError != null
-                          ? Container(
-                              key: const ValueKey('error'),
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                'Erreur de chargement',
-                                style: TextStyle(
-                                  color: Colors.red.shade300,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            )
-                          : Container(
-                              key: ValueKey<int>(provider.miles),
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                '${NumberFormat("#,###", "fr_FR").format(provider.miles).replaceAll(',', ' ')} Mls',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                      ? Container(
+                          key: const ValueKey('error'),
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Erreur de chargement',
+                            style: TextStyle(
+                              color: Colors.red.shade300,
+                              fontSize: 14,
                             ),
+                          ),
+                        )
+                      : Container(
+                          key: ValueKey<int>(provider.miles),
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            '${NumberFormat("#,###", "fr_FR").format(provider.miles).replaceAll(',', ' ')} Mls',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -4004,10 +4122,7 @@ class _HomePageState extends State<HomePage>
                 children: [
                   const Text(
                     'Solde disponible',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -4057,9 +4172,7 @@ class _HomePageState extends State<HomePage>
                       ],
                     ),
               const SizedBox(height: 15),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              ),
+              const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween),
             ],
           ),
         ),
@@ -4109,10 +4222,7 @@ class _HomePageState extends State<HomePage>
                   const Text(
                     'Entrez votre code PIN',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   if (_pinAttempts > 0) ...[
                     const SizedBox(height: 8),
@@ -4154,13 +4264,16 @@ class _HomePageState extends State<HomePage>
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide:
-                                  const BorderSide(color: Color(0xFF006699)),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF006699),
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: const BorderSide(
-                                  color: Color(0xFF006699), width: 2),
+                                color: Color(0xFF006699),
+                                width: 2,
+                              ),
                             ),
                           ),
                           onChanged: (value) async {
@@ -4168,14 +4281,16 @@ class _HomePageState extends State<HomePage>
                               if (index < 3) {
                                 focusNodes[index + 1].requestFocus();
                               } else {
-                                String pin =
-                                    controllers.map((c) => c.text).join();
+                                String pin = controllers
+                                    .map((c) => c.text)
+                                    .join();
                                 try {
                                   final token = await SessionManager.getToken();
                                   if (token != null) {
                                     final response = await http.post(
                                       Uri.parse(
-                                          'https://api.live.wortis.cg/api/wallet/balance'),
+                                        'https://api.live.wortis.cg/api/wallet/balance',
+                                      ),
                                       headers: {
                                         'Authorization': token,
                                         'Content-Type': 'application/json',
@@ -4199,8 +4314,9 @@ class _HomePageState extends State<HomePage>
                                         _pinAttempts++;
                                         if (_pinAttempts >= 3) {
                                           _isPinLocked = true;
-                                          _lockUntil = DateTime.now()
-                                              .add(const Duration(minutes: 30));
+                                          _lockUntil = DateTime.now().add(
+                                            const Duration(minutes: 30),
+                                          );
                                           CustomOverlay.showError(
                                             context,
                                             message:

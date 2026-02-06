@@ -134,6 +134,21 @@ Future<void> sendLocalPlayerIdToBackend() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // ========== SUR iOS: DEMANDER ATT AVANT ONESIGNAL ==========
+  if (Platform.isIOS) {
+    try {
+      print('📱 [iOS] Demande permission App Tracking Transparency...');
+      final status =
+          await AppTrackingTransparency.requestTrackingAuthorization();
+      print('📱 [iOS] ATT Status: $status');
+
+      // Attendre un peu pour que l'autorisation soit bien enregistrée
+      await Future.delayed(const Duration(milliseconds: 500));
+    } catch (e) {
+      print('❌ [iOS] Erreur ATT: $e');
+    }
+  }
+
   // ========== INITIALISATION ONESIGNAL ==========
   try {
     // Configuration OneSignal - Un seul App ID pour iOS et Android
@@ -386,8 +401,7 @@ class _AppStartupPageState extends State<AppStartupPage>
 
   Future<void> _initializeApp() async {
     try {
-      // 1. Demander l'autorisation ATT en premier sur iOS (non-bloquant)
-      _requestTrackingPermission();
+      // 1. ATT déjà demandé dans main() pour iOS
 
       // 2. GÉOLOCALISATION EN ARRIÈRE-PLAN avec sauvegarde automatique
       setState(() => _loadingMessage = 'Géolocalisation en cours...');
@@ -463,13 +477,7 @@ class _AppStartupPageState extends State<AppStartupPage>
     }
   }
 
-  void _requestTrackingPermission() {
-    if (Platform.isIOS) {
-      AppTrackingTransparency.requestTrackingAuthorization()
-          .then((status) => {})
-          .catchError((e) => {});
-    }
-  }
+  // Fonction supprimée - ATT est maintenant demandé dans main() avant OneSignal
 
   Future<bool> _checkUserSession() async {
     try {

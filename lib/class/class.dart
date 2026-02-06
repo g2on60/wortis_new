@@ -2341,7 +2341,9 @@ class SessionManager {
       final filteredData = Map<String, dynamic>.from(userData);
       final keysToRemove = ['_id', 'check_verif', 'role', 'secure_token', 'token'];
 
-      keysToRemove.forEach((key) => filteredData.remove(key));
+      for (var key in keysToRemove) {
+        filteredData.remove(key);
+      }
 
       // Sauvegarder les données filtrées en JSON
       await prefs.setString('offline_user_data', jsonEncode(filteredData));

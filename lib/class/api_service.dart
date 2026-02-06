@@ -6,7 +6,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:wortis/class/uploaded_file.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wortis/class/class.dart';
 import 'package:wortis/class/webviews.dart';
 import 'package:http_parser/http_parser.dart';

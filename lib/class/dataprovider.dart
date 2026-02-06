@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wortis/pages/notifications.dart';
 
 // NOUVEAU IMPORT FIREBASE
-import '../pages/firebase_messaging_service.dart';
 
 class AppDataProvider with ChangeNotifier {
   // ========== VARIABLES D'ÉTAT CORE ==========

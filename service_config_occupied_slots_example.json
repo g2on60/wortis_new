@@ -1,0 +1,144 @@
+{
+  "_id": {
+    "$oid": "65f8a2b3c4d5e6f7a8b9c0d3"
+  },
+  "name": "Coiffure avec Créneaux Occupés",
+  "Type_Service": "ReservationService",
+  "SecteurActivite": "Bookings",
+  "title": "Salon de Coiffure avec Gestion des Réservations",
+  "icon": "content_cut",
+  "banner": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
+  "description": "Réservez votre séance de coiffure. Les créneaux déjà réservés sont automatiquement masqués.",
+  "texts": {
+    "step_1_title": "Étape 1 : Choisissez votre prestation",
+    "step_2_title": "Étape 2 : Sélectionnez la date",
+    "step_3_title": "Étape 3 : Finalisez votre réservation",
+    "step_1_label": "Prestation",
+    "step_2_label": "Date",
+    "step_3_label": "Détails",
+    "button_next": "Suivant",
+    "button_previous": "Précédent",
+    "button_confirm": "Confirmer",
+    "error_no_prestation": "Veuillez sélectionner une prestation",
+    "error_no_timeslot": "Veuillez sélectionner un créneau horaire",
+    "error_no_variant": "Veuillez sélectionner une option"
+  },
+  "availability": {
+    "working_days": [1, 2, 3, 4, 5, 6],
+    "excluded_days": [7],
+    "time_slots": [
+      "08:00-09:00",
+      "09:00-10:00",
+      "10:00-11:00",
+      "11:00-12:00",
+      "14:00-15:00",
+      "15:00-16:00",
+      "16:00-17:00",
+      "17:00-18:00"
+    ],
+    "custom_schedules": {
+      "6": {
+        "time_slots": [
+          "09:00-10:00",
+          "10:00-11:00",
+          "11:00-12:00",
+          "14:00-15:00"
+        ]
+      }
+    },
+    "blocked_slots": {
+      "2024-02-15": ["08:00-09:00", "14:00-15:00"],
+      "2024-02-16": ["10:00-11:00", "11:00-12:00"],
+      "2024-02-20": ["09:00-10:00"]
+    },
+    "api_occupied_slots": "https://api.live.wortis.cg/api/bookings/occupied-slots?date={date}&service={service}"
+  },
+  "fields": [
+    {
+      "name": "type_prestation",
+      "type": "selecteur",
+      "label": "Type de prestation",
+      "required": true,
+      "options": [
+        {
+          "value": "coupe_homme",
+          "label": "Coupe Homme",
+          "description": "Coupe moderne ou classique",
+          "image": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&q=80",
+          "variants": [
+            {
+              "id": "courte",
+              "label": "Cheveux Courts",
+              "price": 5000,
+              "description": "Pour cheveux jusqu'aux oreilles"
+            },
+            {
+              "id": "longue",
+              "label": "Cheveux Longs",
+              "price": 7500,
+              "description": "Pour cheveux dépassant les épaules"
+            }
+          ]
+        },
+        {
+          "value": "coupe_simple",
+          "label": "Coupe Simple",
+          "description": "Coupe basique sans option",
+          "price": 4500,
+          "image": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&q=80"
+        }
+      ]
+    },
+    {
+      "name": "nom",
+      "type": "text",
+      "label": "Nom complet",
+      "required": true
+    },
+    {
+      "name": "telephone",
+      "type": "text",
+      "label": "Numéro de téléphone",
+      "required": true,
+      "tag": "phone"
+    },
+    {
+      "name": "adresse",
+      "type": "text",
+      "label": "Adresse",
+      "required": true
+    },
+    {
+      "name": "commentaire",
+      "type": "text",
+      "label": "Commentaire (optionnel)",
+      "required": false
+    }
+  ],
+  "link_momo": "https://api.live.wortis.cg/api/bookings/create-reservation",
+  "body": {
+    "date": "date",
+    "timeSlot": "timeSlot",
+    "prestation": "type_prestation",
+    "variant": "variant",
+    "nom": "nom",
+    "telephone": "telephone",
+    "adresse": "adresse",
+    "commentaire": "commentaire",
+    "service_name": "service_name",
+    "amount": "amount",
+    "payment_method": "payment_method",
+    "payment_reference": "payment_reference"
+  },
+  "api_timeslots": null,
+  "comment_payer": "Pour confirmer votre réservation:\n\n1. Sélectionnez votre prestation et ses options\n2. Choisissez la date et l'heure (créneaux disponibles uniquement)\n3. Remplissez vos coordonnées\n4. Validez votre réservation\n\nUn professionnel se rendra à votre domicile.",
+  "button_service": "Confirmer la réservation",
+  "created_at": {
+    "$date": "2024-02-06T10:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2024-02-06T10:00:00.000Z"
+  },
+  "eligible_countries": "CG",
+  "active": true
+}

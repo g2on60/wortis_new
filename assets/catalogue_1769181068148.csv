@@ -1,0 +1,7 @@
+Code;Nom;Description;Categorie;Famille;Prix Achat;Prix Vente;TVA;Points Fidelite;Unite;Stock Min;Stock Actuel;Code Barre;Actif;A Variantes
+POM001;Pomme Golden;Pomme Golden de France;Fruits;Alimentation;0.5;1.2;5.5;0;kg;10.0;50.0;3001234567890;1;1
+BAN001;Banane;Bananes importées;Fruits;Alimentation;0.8;1.5;5.5;0;kg;15.0;30.0;3001234567891;1;0
+JUS001;Jus d'orange;Jus d'orange 100% pur jus;Jus;Boissons;1.5;2.8;5.5;0;L;20.0;45.0;3001234567892;1;1
+EAU001;Eau minérale Cristaline;Eau minérale naturelle;Eaux;Boissons;0.2;0.5;5.5;0;L;50.0;100.0;3001234567893;1;1
+SAV001;Savon Dove;Savon hydratant Dove;Savons;Hygiène;1.2;2.5;20.0;0;pièce;10.0;25.0;3001234567894;1;1
+PONDU;SAVON PONDU;ZERTYUI;Savons;Hygiène;290.0;300.0;0.0;0;pièce;12.0;30.0;;1;1

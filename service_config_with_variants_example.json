@@ -1,0 +1,262 @@
+{
+  "_id": {
+    "$oid": "65f8a2b3c4d5e6f7a8b9c0d2"
+  },
+  "name": "Coiffure avec Variantes",
+  "Type_Service": "ReservationService",
+  "SecteurActivite": "Bookings",
+  "title": "Salon de Coiffure Professionnel",
+  "icon": "content_cut",
+  "banner": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
+  "description": "Réservez votre séance de coiffure avec nos professionnels. Choisissez parmi nos différentes prestations et options.",
+  "texts": {
+    "step_1_title": "Étape 1 : Choisissez votre prestation",
+    "step_2_title": "Étape 2 : Sélectionnez la date",
+    "step_3_title": "Étape 3 : Finalisez votre réservation",
+    "step_1_label": "Prestation",
+    "step_2_label": "Date",
+    "step_3_label": "Détails",
+    "button_next": "Suivant",
+    "button_previous": "Précédent",
+    "button_confirm": "Confirmer",
+    "error_no_prestation": "Veuillez sélectionner une prestation",
+    "error_no_timeslot": "Veuillez sélectionner un créneau horaire",
+    "error_no_variant": "Veuillez sélectionner une option"
+  },
+  "categories": [
+    {
+      "id": "coupes",
+      "label": "Coupes",
+      "icon": "content_cut"
+    },
+    {
+      "id": "barbe",
+      "label": "Barbe",
+      "icon": "face_retouching_natural"
+    },
+    {
+      "id": "forfaits",
+      "label": "Forfaits",
+      "icon": "auto_awesome"
+    }
+  ],
+  "availability": {
+    "working_days": [1, 2, 3, 4, 5, 6],
+    "excluded_days": [7],
+    "time_slots": [
+      "08:00-09:00",
+      "09:00-10:00",
+      "10:00-11:00",
+      "11:00-12:00",
+      "14:00-15:00",
+      "15:00-16:00",
+      "16:00-17:00",
+      "17:00-18:00"
+    ],
+    "custom_schedules": {
+      "6": {
+        "time_slots": [
+          "09:00-10:00",
+          "10:00-11:00",
+          "11:00-12:00",
+          "14:00-15:00"
+        ]
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "type_prestation",
+      "type": "selecteur",
+      "label": "Type de prestation",
+      "required": true,
+      "options": [
+        {
+          "value": "coupe_homme",
+          "label": "Coupe Homme",
+          "category": "coupes",
+          "description": "Coupe moderne ou classique",
+          "image": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&q=80",
+          "variants": [
+            {
+              "id": "courte",
+              "label": "Cheveux Courts",
+              "price": 5000,
+              "description": "Pour cheveux jusqu'aux oreilles"
+            },
+            {
+              "id": "moyenne",
+              "label": "Cheveux Mi-longs",
+              "price": 6000,
+              "description": "Pour cheveux jusqu'aux épaules"
+            },
+            {
+              "id": "longue",
+              "label": "Cheveux Longs",
+              "price": 7500,
+              "description": "Pour cheveux dépassant les épaules"
+            }
+          ]
+        },
+        {
+          "value": "coupe_enfant",
+          "label": "Coupe Enfant",
+          "category": "coupes",
+          "description": "Coupe adaptée aux enfants",
+          "image": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&q=80",
+          "variants": [
+            {
+              "id": "3-6ans",
+              "label": "3 à 6 ans",
+              "price": 3000
+            },
+            {
+              "id": "7-12ans",
+              "label": "7 à 12 ans",
+              "price": 3500
+            }
+          ]
+        },
+        {
+          "value": "coupe_styling",
+          "label": "Coupe + Styling",
+          "category": "coupes",
+          "description": "Coupe avec mise en forme",
+          "image": "https://images.unsplash.com/photo-1622286346507-d31c0c96eb0e?w=400&q=80",
+          "variants": [
+            {
+              "id": "gel",
+              "label": "Avec Gel",
+              "price": 6500
+            },
+            {
+              "id": "cire",
+              "label": "Avec Cire",
+              "price": 7000
+            },
+            {
+              "id": "laque",
+              "label": "Avec Laque",
+              "price": 6500
+            }
+          ]
+        },
+        {
+          "value": "taille_barbe",
+          "label": "Taille de Barbe",
+          "category": "barbe",
+          "description": "Taille et mise en forme",
+          "image": "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=400&q=80",
+          "variants": [
+            {
+              "id": "simple",
+              "label": "Taille Simple",
+              "price": 2500,
+              "description": "Égalisation basique"
+            },
+            {
+              "id": "design",
+              "label": "Taille Design",
+              "price": 3500,
+              "description": "Avec dessin et contours"
+            },
+            {
+              "id": "complete",
+              "label": "Taille Complète",
+              "price": 4000,
+              "description": "Avec soin et huile de barbe"
+            }
+          ]
+        },
+        {
+          "value": "rasage",
+          "label": "Rasage",
+          "category": "barbe",
+          "description": "Rasage professionnel",
+          "image": "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=400&q=80",
+          "variants": [
+            {
+              "id": "classique",
+              "label": "Rasage Classique",
+              "price": 3000
+            },
+            {
+              "id": "traditionnel",
+              "label": "Rasage Traditionnel",
+              "price": 4500,
+              "description": "Avec serviettes chaudes"
+            }
+          ]
+        },
+        {
+          "value": "forfait_complet",
+          "label": "Forfait Complet",
+          "category": "forfaits",
+          "description": "Package tout inclus",
+          "image": "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400&q=80",
+          "variants": [
+            {
+              "id": "standard",
+              "label": "Forfait Standard",
+              "price": 10000,
+              "description": "Coupe + Barbe + Shampoing"
+            },
+            {
+              "id": "premium",
+              "label": "Forfait Premium",
+              "price": 13000,
+              "description": "Coupe + Barbe + Soins + Massage"
+            },
+            {
+              "id": "vip",
+              "label": "Forfait VIP",
+              "price": 18000,
+              "description": "Service complet avec produits haut de gamme"
+            }
+          ]
+        },
+        {
+          "value": "coupe_simple",
+          "label": "Coupe Simple",
+          "category": "coupes",
+          "description": "Coupe basique sans option",
+          "price": 4500,
+          "image": "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400&q=80"
+        }
+      ]
+    },
+    {
+      "name": "email",
+      "type": "text",
+      "label": "Email",
+      "required": true,
+      "tag": "email"
+    },
+    {
+      "name": "notes",
+      "type": "text",
+      "label": "Instructions particulières (optionnel)",
+      "required": false
+    }
+  ],
+  "link_momo": "https://api.live.wortis.cg/api/bookings/create-reservation",
+  "body": {
+    "date": "date",
+    "timeSlot": "timeSlot",
+    "prestation": "type_prestation",
+    "variant": "variant",
+    "email": "email",
+    "notes": "notes"
+  },
+  "api_timeslots": null,
+  "comment_payer": "Pour confirmer votre réservation:\n\n1. Sélectionnez votre prestation et ses options\n2. Choisissez la date et l'heure\n3. Remplissez vos coordonnées\n4. Validez votre réservation\n\nUn professionnel se rendra à votre domicile.",
+  "button_service": "Confirmer la réservation",
+  "created_at": {
+    "$date": "2024-02-06T10:00:00.000Z"
+  },
+  "updated_at": {
+    "$date": "2024-02-06T10:00:00.000Z"
+  },
+  "eligible_countries": "CG",
+  "active": true
+}

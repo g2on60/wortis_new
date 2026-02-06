@@ -10,8 +10,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:mime/mime.dart';
-import 'package:wortis/main.dart';
-import 'package:wortis/pages/homepage.dart';
 import 'package:wortis/class/uploaded_file.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -2709,21 +2707,50 @@ class _PaymentConfirmationDialogState extends State<_PaymentConfirmationDialog>
                                       ),
                                     ),
                                     const Divider(height: 16),
-                                    Text(
-                                      'Frais de service',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey[600],
-                                      ),
+                                    // Frais opérateur
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Frais opérateur',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        Text(
+                                          '${numberFormat.format(double.tryParse(value) != null ? double.parse(value) * widget.fraisOperateur : 0)} FCFA',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Color(0xFF2C3E50),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${numberFormat.format(widget.fraisService)} FCFA',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Color(0xFF2C3E50),
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                    const SizedBox(height: 8),
+                                    // Frais de service
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Frais de service',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        Text(
+                                          '${numberFormat.format(widget.fraisService)} FCFA',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Color(0xFF2C3E50),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 8),
                                     const Divider(height: 1, thickness: 2),
