@@ -53,7 +53,7 @@ void _startOneSignalMonitoring() {
 // ========== FONCTION POUR FORCER LA SOUSCRIPTION ONESIGNAL ==========
 Future<bool> forceOneSignalSubscription() async {
   try {
-    // Forcer l'opt-in
+    // Forcer l'opt-in.....
     OneSignal.User.pushSubscription.optIn();
 
     // Attendre que l'état soit mis à jour
